@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- Basic Page Needs
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8">
+    <title>Projection</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <!-- Mobile Specific Metas
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- FONT
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
+    <!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="/assets/css/normalize.css">
+    <link rel="stylesheet" href="/assets/css/skeleton.css">
+
+    <!-- Favicon
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="/assets/images/favicon/favicon.ico">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+            integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/kmeans-js@0.1.2/kMeans.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-sankey/0.12.2/d3-sankey.min.js"></script>
+    <script type="text/javascript" src="jDBSCAN.js"></script>
+
+
+    <style>
+
+
+        #disp svg {
+
+            border: #555555 solid 1px;
+            margin: 5px;
+            width: 250px;
+            height: 250px;
+
+        }
+    </style>
+</head>
+<body>
+
+<!-- Primary Page Layout
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+<div class="container" style="margin-bottom: 5%">
+    <div class="row">
+        <div class="twelve column" style="margin-top: 10%">
+            <!--            <h4 style="text-align: center"> Hey, this a custom template with Skeleton</h4>-->
+
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="twelve column" style="margin-top: 10%">
+            <!--            <div><input type="range" min="3" max="12" id="nbk" value="3">-->
+            <!--                <p id="nbtxt" style="display:inline-block;">3</p></div>-->
+
+            <svg id="main" width="975" height="500">
+
+
+            </svg>
+
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="twelve column" id="disp">
+
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+<script>
+    let color = d3.scaleOrdinal(d3.schemeSet3);
+    let data;
+    let data2;
+
+    let dato = [];
+
+    const align = "justify";
+    let nbk = 3;
+
+
+    let clusts = [];
+
+    async function getData() {
+        data = await d3.json('convs.json').then(d => {
+            let dat = JSON.parse(d.replace(/'/g, '"'));
+            return dat.tsne
+        });
+        data2 = await d3.json('lins.json').then(d => {
+            let dat = JSON.parse(d.replace(/'/g, '"'));
+            return dat.tsne
+        });
+        return data
+    }
+
+
+    $("#nbk").on("input", function (e) {
+        nbk = $(this).val();
+
+        let svg = d3.select("#main")
+
+        svg.selectAll("*").remove()
+
+        $("#nbtxt").html(nbk)
+
+        dato = [];
+        clusts = [];
+        $("#disp").html("")
+        draw()
+    });
+
+    getData().then(draw);
+
+    function getDist2(id, daa, n) {
+
+
+        let scalex = d3.scaleLinear(d3.extent(data.map(d => d[0])), [25, 225]);
+        let scaley = d3.scaleLinear(d3.extent(data.map(d => d[1])), [25, 225]);
+
+
+        let scalex2 = d3.scaleLinear(d3.extent(data2.map(d => d[0])), [25, 225]);
+        let scaley2 = d3.scaleLinear(d3.extent(data2.map(d => d[1])), [25, 225]);
+        // let ref = [data.find(d => d.id === id), data2.find(d => d.id === id)];
+
+
+        // console.log(ref);
+
+        let res = [[], []];
+
+        for (let i = 0; i < daa.length; i++) {
+            // if (data[i][2] !== id) {
+
+            res[0].push([euclidian_dist([scalex(+data[id][0]), scaley(+data[id][1])], [scalex(+data[i][0]), scaley(+data[i][1])]), daa[i].id])
+            res[1].push([euclidian_dist([scalex2(+data2[id][0]), scaley2(+data2[id][1])], [scalex2(+data2[i][0]), scaley2(+data2[i][1])]), daa[i].id])
+            // }
+        }
+        let temp = [];
+        for (let i = 0; i < res.length; i++) {
+            res[i].sort((a, b) => (a > b) ? 1 : (b > a) ? -1 : 0);
+            res[i].shift();
+            temp.push(res[i].slice(0, n))
+        }
+
+
+        let tempid = temp.slice();
+
+        for (let i = 0; i < tempid.length; i++) {
+            tempid[i] = tempid[i].map(d => d[1])
+        }
+
+        let arr = [];
+        arr.push(res[0].filter(d => {
+                return tempid[1].includes(d[1])
+            })
+        );
+
+        arr.push(res[1].filter(d => tempid[0].includes(d[1])));
+
+        let total = [];
+
+
+        for (let i = 0; i < arr.length; i++) {
+            total.push(arr[i].reduce((a, b) => {
+                return (+a) + (+b[0])
+            }, 0));
+        }
+        return total
+    }
+
+    function getDist(id, daa, n) {
+
+
+        let scalex = d3.scaleLinear(d3.extent(data.map(d => d[0])), [25, 225])
+        let scaley = d3.scaleLinear(d3.extent(data.map(d => d[1])), [25, 225])
+
+
+        let scalex2 = d3.scaleLinear(d3.extent(data2.map(d => d[0])), [25, 225])
+        let scaley2 = d3.scaleLinear(d3.extent(data2.map(d => d[1])), [25, 225])
+        // let ref = [data.find(d => d.id === id), data2.find(d => d.id === id)];
+
+
+        // console.log(ref);
+
+        let res = [[], []];
+
+        for (let i = 0; i < daa.length; i++) {
+            // if (data[i][2] !== id) {
+
+            res[0].push([euclidian_dist([scalex(+data[id][0]), scaley(+data[id][1])], [scalex(+data[i][0]), scaley(+data[i][1])]), daa[i].id])
+            res[1].push([euclidian_dist([scalex2(+data2[id][0]), scaley2(+data2[id][1])], [scalex2(+data2[i][0]), scaley2(+data2[i][1])]), daa[i].id])
+            // }
+        }
+        let temp = [];
+        for (let i = 0; i < res.length; i++) {
+            res[i].sort((a, b) => (a > b) ? 1 : (b > a) ? -1 : 0);
+            res[i].shift();
+            temp.push(res[i].slice(0, n))
+        }
+
+
+        let tempid = temp.slice();
+
+        for (let i = 0; i < tempid.length; i++) {
+            tempid[i] = tempid[i].map(d => d[1])
+        }
+
+        let arr = [];
+        arr.push(res[0].filter(d => {
+                return tempid[1].includes(d[1])
+            })
+        );
+
+        arr.push(res[1].filter(d => tempid[0].includes(d[1])));
+
+        let total = 0;
+
+
+        for (let i = 0; i < arr.length; i++) {
+            total += arr[i].reduce((a, b) => {
+                return (+a) + (+b[0])
+            }, 0);
+        }
+        return total
+    }
+
+    function draw() {
+
+        let cont = d3.select("#disp");
+
+        for (let i = 0; i < 2; i++) {
+
+
+            let svg = cont.append("svg");
+            let temp = (i === 0 ? data : data2);
+            let scalex = d3.scaleLinear(d3.extent(temp.map(d => d[0])), [25, 225]);
+            let scaley = d3.scaleLinear(d3.extent(temp.map(d => d[1])), [25, 225]);
+
+
+            // var km = new kMeans({
+            //     K: nbk
+            // });
+
+            let lim = d3.extent(temp.map(d => d[0]));
+            var dbscanner = jDBSCAN()
+                .eps((i===0?9:5))
+                .minPts(20)
+                .distance('EUCLIDEAN')
+                .data(temp.map(d => {
+                    return {
+                        x: scalex(d[0]),
+                        y: scaley(d[1])
+                    }
+                }));
+
+
+            // export2csv(temp.map(d => {
+            //     return {
+            //         x: scalex(d[0]),
+            //         y: scaley(d[1])
+            //     }
+            // }), i)
+
+            // km.cluster(temp.map(d => [scalex(d[0]), scaley(d[1])]));
+            // while (km.step()) {
+            //     km.findClosestCentroids();
+            //     km.moveCentroids();
+            //
+            //
+            //     if (km.hasConverged()) break;
+            // }
+
+            let bob = toClust(dbscanner());
+
+            if (dato.length > 0) {
+                // bob = reorder(bob, clusts[0]);
+                clusts.push(bob);
+                temp = getCluster(temp, bob);
+            } else {
+                clusts.push(bob);
+                temp = getCluster(temp, bob);
+            }
+            dato.push(temp);
+            // clusts.push(km.clusters);
+
+            svg.selectAll(".dat")
+                .data(temp)
+                .enter()
+                .append("circle")
+                .attr("r", '2')
+                .attr("num", (d, i) => i)
+                .attr("clust", d => {
+                    // console.log(d[2]);
+                    return d[2]
+                })
+                .attr("cx", d => scalex(d[0]))
+                .attr("cy", d => scaley(d[1]))
+                .attr('fill', d => color(+d[2]))
+                .on("mouseover", big)
+                .on("mouseout", smal)
+
+        }
+        // drawSankey()
+        drawStats()
+
+
+    }
+
+
+    function export2csv(data, id) {
+
+
+        let csvContent = "data:text/csv;charset=utf-8,"
+            + data.map(e => e.x + ',' + e.y).join("\n");
+
+
+        var encodedUri = encodeURI(csvContent);
+        var link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "my_data" + id + ".csv");
+        document.body.appendChild(link); // Required for FF
+
+        link.click();
+    }
+
+    function drawStats() {
+
+
+        // let scalex = d3.scaleLinear(d3.extent(data.map(d => d[0])), [25, 225]);
+        // let scaley = d3.scaleLinear(d3.extent(data.map(d => d[1])), [25, 225]);
+        //
+        //
+        // let scalex2 = d3.scaleLinear(d3.extent(data2.map(d => d[0])), [25, 225]);
+        // let scaley2 = d3.scaleLinear(d3.extent(data2.map(d => d[1])), [25, 225]);
+
+
+        let hscale = d3.scaleLinear().domain([0, 1000]).range([1, 20]);
+        const svg = d3.select('#main');
+
+        const dataor = prep(clusts);
+        // let color = d3.scaleOrdinal(d3.schemeCategory10);
+        const padding = 75
+        let full = Math.max(...dataor.map(d => d.length)) / 2
+        let recWidth = (900 - (padding * 2)) / (full * 2)
+
+
+        for (let i = 0; i < dataor.length; i++) {
+            let done = d3.range(3).map(d => 0);
+            done[2] = +dataor[i].slice().filter(d => d.proj === 0).length;
+            done[1] = done[2] + (+dataor[i].slice().filter(d => d.proj === 2).length);
+
+            svg.append("text")
+                .attr('x', 25)
+                .attr("y", 80 + (40 * i))
+                .attr("fill", color(i))
+                .text('Cluster ' + i);
+
+            const cfull = full - (dataor[i].length / 2);
+
+            svg.append("text")
+                .attr('x', (padding * 1.5) + (cfull * recWidth) + (recWidth * dataor[i].length) +10)
+                .attr('y', 80 + (40 * i) -5)
+                .text(dataor[i].length);
+
+
+            dataor[i].map(d => {
+
+                    d['dist'] = getDist2(d.id, dataor[i], 5)
+
+                }
+            );
+            // getDist(dataor[i][0].id, dataor[i], 5);
+            //
+            // dataor[i].map(d => {
+            //     d['dist'] = euclidian_dist([scalex(data[d.id][0]), scaley(data[d.id][1])], [scalex2(data2[d.id][0]), scaley2(data2[d.id][1])])
+            //     return d
+            // });
+
+
+            // dataor[i].sort((a, b) => ((a.dist[0] + a.dist[1]) > (b.dist[0] + b.dist[1])) ? 1 : (((b.dist[0] + b.dist[1]) > (a.dist[0] + a.dist[1])) ? -1 : 0));
+            // dataor[i].sort((a, b) => ((a.dist[1]) > (b.dist[1])) ? 1 : (((b.dist[1]) > (a.dist[1])) ? -1 : 0));
+            dataor[i].sort((a, b) => ((a.dist[0]) > (b.dist[0])) ? 1 : (((b.dist[0]) > (a.dist[0])) ? -1 : 0)); // sort by size of first rect
+
+            // console.log(dataor[i]);
+
+            for (let j = 0; j < dataor[i].length; j++) {
+
+                svg.append('rect')
+                    .attr("x", (padding * 1.5) + (cfull * recWidth) + (recWidth * done[dataor[i][j].proj]))
+                    .attr("y", 60 + (40 * i))
+                    .attr("width", recWidth)
+                    .attr("fill", () => {
+
+                        if (dataor[i][j].proj === 0) {
+                            return 'green'
+                        } else if (dataor[i][j].proj === 1) {
+                            return 'red'
+                        } else {
+                            return 'purple'
+                        }
+                    })
+                    .attr("height", hscale(dataor[i][j].dist[0]));
+
+
+                svg.append('rect')
+                    .attr("x", (padding * 1.5) + (cfull * recWidth) + (recWidth * done[dataor[i][j].proj]))
+                    .attr("y", 60 + (40 * i) + hscale(dataor[i][j].dist[0]) + 1)
+                    .attr("width", recWidth)
+                    .attr("fill", () => {
+
+                        if (dataor[i][j].proj === 0) {
+                            return 'green'
+                        } else if (dataor[i][j].proj === 1) {
+                            return 'red'
+                        } else {
+                            return 'purple'
+                        }
+                    })
+                    .attr("height", hscale(dataor[i][j].dist[1]));
+
+                done[dataor[i][j].proj] += 1;
+            }
+        }
+
+        svg.append("text")
+            .attr('x', "5")
+            .attr('y', 35)
+            .text('Projection A');
+
+        svg.append("text")
+            .attr('x', "865")
+            .attr('y', 35)
+            .text('Projection B');
+    }
+
+
+    function prep(clusters) {
+        // 0 == proj A, 1 == Proj B, 2 == Both
+
+        let res = [];
+
+        let scalex = d3.scaleLinear(d3.extent(data.map(d => d[0])), [25, 225])
+        let scaley = d3.scaleLinear(d3.extent(data.map(d => d[1])), [25, 225])
+
+
+        let scalex2 = d3.scaleLinear(d3.extent(data2.map(d => d[0])), [25, 225])
+        let scaley2 = d3.scaleLinear(d3.extent(data2.map(d => d[1])), [25, 225])
+
+        for (let i = 0; i < Math.max(clusters[0].length, clusters[1].length); i++) {
+            let temp = [];
+            if (i < clusters[0].length && i < clusters[1].length) {
+
+                let bob = clusters[0][i].slice().filter(value => clusters[1][i].includes(value))
+
+
+                for (let j = 0; j < clusters[0][i].length; j++) {
+
+                    if (!bob.includes(clusters[0][i][j])) {
+                        temp.push({
+                            data: [scalex(data[clusters[0][i][j]][0]), scaley(data[clusters[0][i][j]][1])],
+                            cluster: i,
+                            id: clusters[0][i][j],
+                            proj: 0
+                        })
+                    }
+                }
+                for (let j = 0; j < clusters[1][i].length; j++) {
+
+                    if (!bob.includes(clusters[1][i][j])) {
+                        temp.push({
+                            data: [scalex2(data2[clusters[1][i][j]][0]), scaley2(data2[clusters[1][i][j]][1])],
+                            cluster: i,
+                            id: clusters[1][i][j],
+                            proj: 1
+                        })
+                    }
+                }
+
+                for (let j = 0; j < bob.length; j++) {
+                    temp.push({
+                        data: [[scalex(data[bob[j]][0]), scaley(data[bob[j]][1])], [scalex2(data2[bob[j]][0]), scaley2(data2[bob[j]][1])]],
+                        cluster: i,
+                        id: bob[j],
+                        proj: 2
+
+
+                    })
+                }
+
+            } else if (i < clusters[0].length) {
+                for (let j = 0; j < clusters[0][i].length; j++) {
+                    temp.push({
+                        data: [scalex(data[clusters[0][i][j]][0]), scaley(data[clusters[0][i][j]][1])],
+                        cluster: i,
+                        id: clusters[0][i][j],
+                        proj: 0
+                    })
+                }
+
+            } else {
+                for (let j = 0; j < clusters[1][i].length; j++) {
+                    temp.push({
+                        data: [scalex(data2[clusters[1][i][j]][0]), scaley(data2[clusters[1][i][j]][1])],
+                        cluster: i,
+                        id: clusters[1][i][j],
+                        proj: 1
+                    })
+                }
+
+            }
+
+            res.push(temp.slice())
+        }
+
+
+        return res
+
+    }
+
+    function big(e) {
+        let temp = d3.select(this);
+
+        for (let i = 0; i < clusts[0][temp.attr('clust')].length; i++) {
+
+            d3.selectAll('circle[num="' + clusts[0][temp.attr('clust')][i] + '"]').transition().duration(200).attr("r", 5)
+        }
+
+        console.log('done');
+
+    }
+
+
+    function euclidian_dist(a, b) {
+        let sum = 0;
+
+        for (let n = 0; n < a.length; n++) {
+            sum += Math.pow(a[n] - b[n], 2)
+        }
+        return Math.sqrt(sum)
+    }
+
+
+    function toClust(data) {
+
+        let res = d3.range(unique(data).length).map(d => []);
+        for (let i = 0; i < data.length; i++) {
+            res[data[i]].push(i)
+        }
+        return res
+    }
+
+    function unique(array) {
+        return array.filter(function (el, index, arr) {
+            return index == arr.indexOf(el);
+        });
+    }
+
+
+    function smal(e) {
+        let temp = d3.select(this)
+        d3.selectAll('circle').transition().duration(200).attr("r", 2)
+    }
+
+    function getCluster(data, clusters) {
+
+        return data.map((d, i) => {
+            for (let j = 0; j < clusters.length; j++) {
+                if (clusters[j].includes(i)) {
+                    d.push(j);
+                    return d
+                }
+            }
+            return clusters.length
+        })
+    }
+
+    function reorder(clusters, ref) {
+        // This is done to re-order cluster based on how similar they are to the ref.
+        let temp = d3.range(ref.length).map(d => []);
+        let mid = [];
+
+        let res = [];
+        for (let u = 0; u < clusters.length; u++) {
+            for (let i = 0; i < ref.length; i++) {
+
+                temp[u].push(arr_diff(clusters[u], ref[i]).length)
+            }
+
+            let argm = argMin(temp[u]);
+            if (!mid.includes(argm)) {
+                res.push(clusters[argm])
+                mid.push(argm)
+            } else {
+                let prov = temp[u].slice()
+                prov.splice(argm, 1)
+                argm = argMin(prov);
+                argm = temp[u].indexOf(prov[argm])
+                res.push(clusters[argm])
+                mid.push(argm)
+            }
+
+        }
+
+        return res
+    }
+
+    function argMin(array) {
+        return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] < r[0] ? a : r))[1];
+    }
+
+    function arr_diff(a1, a2) {
+
+        var a = [], diff = [];
+
+        for (var i = 0; i < a1.length; i++) {
+            a[a1[i]] = true;
+        }
+
+        for (var i = 0; i < a2.length; i++) {
+            if (a[a2[i]]) {
+                delete a[a2[i]];
+            } else {
+                a[a2[i]] = true;
+            }
+        }
+
+        for (var k in a) {
+            diff.push(k);
+        }
+
+        return diff;
+    }
+
+    function sankey() {
+        const sankey = d3.sankey()
+            .nodeId(d => d.name)
+            .nodeAlign(d3[`sankey${align[0].toUpperCase()}${align.slice(1)}`])
+            .nodeWidth(15)
+            .nodePadding(10)
+            .extent([[1, 5], [780 - 1, 500 - 5]])
+        // .nodeAlign(nodeAlignment)
+
+        return ({nodes, links}) => sankey({
+            nodes: nodes.map(d => Object.assign({}, d)),
+            links: links.map(d => Object.assign({}, d))
+        });
+    }
+
+    function drawSankey() {
+        // let color = d3.scaleOrdinal(d3.schemeCategory10);
+
+        const {nodes, links} = sankey()(makeData(clusts));
+        // console.log('CALLLLLEEDDD');
+        // console.log(sankey()(makeData(clusts)));
+
+
+        const svg = d3.select('#main')
+        svg.append("g")
+            .attr("stroke", "#000")
+            .selectAll("rect")
+            .data(nodes)
+            .join("rect")
+            .attr("x", d => d.x0)
+            .attr("y", d => d.y0)
+            .attr("height", d => d.y1 - d.y0)
+            .attr("width", d => d.x1 - d.x0)
+            .attr("fill", d => color(d.category))
+            .append("title")
+            .text(d => d.name + '\n' + d.value);
+
+        const link = svg.append("g")
+            .attr("fill", "none")
+            .attr("stroke-opacity", 0.5)
+            .selectAll("g")
+            .data(links)
+            .join("g")
+            .style("mix-blend-mode", "multiply");
+
+
+        link.append("path")
+            .attr("d", d3.sankeyLinkHorizontal())
+            .attr("stroke", d =>
+                color(d.target.category))
+            .attr("stroke-width", d => Math.max(1, d.width));
+
+        link.append("title")
+            .text(d => d.source.name + ' → ' + d.target.name + '\n' + d.value);
+
+        // svg.append("g")
+        //     .attr("font-family", "sans-serif")
+        //     .attr("font-size", 10)
+        //     .selectAll("text")
+        //     .data(nodes)
+        //     .join("text")
+        //     .attr("x", d => d.x0 < 780 / 2 ? d.x1 + 6 : d.x0 - 6)
+        //     .attr("y", d => (d.y1 + d.y0) / 2)
+        //     .attr("dy", "0.35em")
+        //     .attr("text-anchor", d => d.x0 < 780 / 2 ? "start" : "end")
+        //     .text(d => d.name);
+    }
+
+
+    function makeData(data) {
+
+
+        let nodes = [];
+        let links = [];
+
+        for (let i = 0; i < data.length; i++) {
+            for (let j = 0; j < data[i].length; j++) {
+                nodes.push({name: 'layer_' + i + '_clust' + j, category: j})
+            }
+        }
+
+        for (let i = 0; i < data.length - 1; i++) {
+            for (let u = 0; u < data[i].length; u++) {
+                for (let j = 0; j < data[i + 1].length; j++) {
+                    const intersection = data[i][u].slice().filter(element => data[i + 1][j].includes(element));
+                    if (i == 1 && u == 0) {
+
+                    }
+                    if (intersection.length > 0) {
+                        links.push({
+                            source: 'layer_' + i + '_clust' + u,
+                            target: 'layer_' + (i + 1) + '_clust' + j,
+                            value: intersection.length
+                        })
+                    }
+                }
+
+            }
+        }
+        return {nodes, links, units: "TWh"}
+    }
+</script>
+
+</body>
+</html>
