@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- Basic Page Needs
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8">
+    <title>Projection</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <!-- Mobile Specific Metas
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- FONT
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
+    <!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="/assets/css/normalize.css">
+    <link rel="stylesheet" href="/assets/css/skeleton.css">
+
+    <!-- Favicon
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="/assets/images/favicon/favicon.ico">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+            integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/kmeans-js@0.1.2/kMeans.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-sankey/0.12.2/d3-sankey.min.js"></script>
+    <script type="text/javascript" src="jDBSCAN.js"></script>
+
+
+    <style>
+
+
+        #disp svg {
+
+            border: #555555 solid 1px;
+            margin: 5px;
+            width: 250px;
+            height: 250px;
+
+        }
+    </style>
+</head>
+<body>
+
+<!-- Primary Page Layout
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+<div class="container" style="margin-bottom: 5%">
+    <div class="row">
+        <div class="twelve column" style="margin-top: 10%">
+            <!--            <h4 style="text-align: center"> Hey, this a custom template with Skeleton</h4>-->
+
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="twelve column" style="margin-top: 10%">
+            <!--            <div><input type="range" min="3" max="12" id="nbk" value="3">-->
+            <!--                <p id="nbtxt" style="display:inline-block;">3</p></div>-->
+
+            <svg id="main" width="2500" height="1500">
+
+
+            </svg>
+
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="twelve column" id="disp">
+
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+<script>
+    let color = d3.scaleOrdinal(d3.schemeSet3);
+    let data;
+    let data2;
+
+    let dato = [];
+
+    const align = "justify";
+    let nbk = 3;
+
+
+    let clusts = [];
+
+    let lines = [];
+
+    async function getData() {
+        data = await d3.json('https://bost.ocks.org/mike/miserables/miserables.json').then(d => {
+            return d
+        });
+
+    }
+
+    getData().then(drawStats);
+
+    function drawStats() {
+
+        const svg = d3.select('#main');
+        let rectSize = 10
+        let pad = 2
+        // const dataor = prep(clusts);
+        // let color = d3.scaleOrdinal(d3.schemeCategory10);
+        const padding = 125;
+        // let full = Math.max(...dataor.map(d => d.length)) / 2
+        // let recWidth = (900 - (padding * 2)) / (full * 2)
+
+        let moritz = data.nodes.slice().sort((a, b) => {
+            return ((a.name) > (b.name)) ? 1 : (((b.name) > (a.name)) ? -1 : 0)
+        });
+
+
+        for (let i = 0; i < data.nodes.length; i++) {
+            // let curdatoar = dataor[moritz[i][1]];
+
+            svg.append("text")
+                .attr('x', padding)
+                .attr("text-anchor", "end")
+                .attr("y", 60 + ((rectSize + (pad * 2)) * i) + rectSize / 1.5)
+                .text(data.nodes[i].name);
+
+            let toproc = data.links.filter(d => d.source === i);
+            let topind = toproc.map(d => d.target);
+
+            let toproc2 = data.links.filter(d => d.target === i);
+            let topind2 = toproc2.map(d => d.source);
+
+            let cumul = rectSize + pad;
+            for (let j = 0; j < data.nodes.length; j++) {
+
+                if (topind.includes(j) || j === i || topind2.includes(j)) {
+                    svg.append('rect')
+                        .attr("x", padding + cumul)
+                        .attr("y", 60 + ((rectSize + (pad * 2)) * i))
+                        .attr("width", rectSize)
+                        .attr("height", rectSize)
+                        .attr('fill', 'green');
+
+                } else {
+                    svg.append('rect')
+                        .attr("x", padding + cumul)
+                        .attr("y", 60 + ((rectSize + (pad * 2)) * i))
+                        .attr("width", rectSize)
+                        .attr("height", rectSize)
+                        .attr('fill', '#d3d3d3');
+
+                }
+                cumul += (rectSize + pad)
+            }
+
+            // if (moritz[i][0] > 0) {
+            //     svg.append('rect')
+            //         .attr("x", 500)
+            //         .attr("y", 60 + ((rectSize + pad) * i))
+            //         .attr("width", rectSize)
+            //         .attr("height", rectSize)
+            //         .attr('fill', 'steelblue');
+            // } else {
+            //     svg.append('rect')
+            //         .attr("x", 500)
+            //         .attr("y", 60 + ((rectSize + pad) * i))
+            //         .attr("width", rectSize)
+            //         .attr("height", rectSize)
+            //         .attr('fill', '#808080');
+            // }
+
+            /*            for (let j = 0; j < 2; j++) {
+                            let done = 0;
+                            let dat = curdatoar.filter(d => d.proj === j);
+                            let target = data.length;
+                            let cumul = rectSize + pad;
+
+
+                            for (let k = 0; k < moritz.length; k++) {
+                                let res = dat.filter(d => d.out === moritz[k][1]);
+
+                                if (k === 0) {
+                                    svg.append('text')
+                                        .attr("x", (j === 0 ? (500 + pad) - ((rectSize + pad) * (i + 1)) : (500) + ((rectSize + pad) * (i + 1))))
+                                        .attr("y", 50)
+                                        .text("C." + moritz[i][1])
+                                }
+
+                                if (res.length > 0) {
+                                    svg.append('rect')
+                                        .attr("x", j === 0 ? (500 + rectSize - (pad / 2)) - (cumul + (rectSize - pad)) : (500) + (cumul))
+                                        .attr("y", 60 + ((rectSize + pad) * i))
+                                        .attr("width", rectSize)
+                                        .attr("height", rectSize)
+                                        .attr('fill', (j === 1 ? 'red' : 'green'));
+
+                                    cumul += (rectSize + pad)
+
+                                } else {
+                                    cumul += 1 + pad
+                                }
+
+                                lines[i].push([cumul, 0, k, j + 1]);
+                                lines[i].push([cumul, 1, k, j + 1]);
+                                if (done === target) break
+                            }
+
+                        }*/
+        }
+
+
+        for (let l = 0; l < lines.length * 2; l++) { //lines.length
+
+            let dat = []
+            // console.log(lines);
+            for (let i = 0; i < lines.length; i++) {
+                // console.log(lines[i]);
+                if (l < lines.length / 2) {
+                    dat = dat.concat(lines[i].filter(d => (d[2] == l && d[3] == 1)))
+                } else {
+                    dat = dat.concat(lines[i].filter(d => (d[2] == l && d[3] == 2)))
+                }
+
+                // dat.push(lines[i][l])
+                // dat.push(lines[i][l])
+            }
+            console.log(l);
+            console.log(dat);
+            let line = d3.line()
+                .x(function (d, i) {
+
+                    return l < lines.length / 2 ? (500 + rectSize + pad) - (d[0]) : (500) + (d[0])
+
+                })
+                .y(function (d, i) {
+                    if (d[1] == 0) {
+                        return 60 + ((rectSize + pad) * (i / 2));
+                    } else {
+                        return 60 + (rectSize / 2) + ((rectSize + pad) * (i / 2));
+                    }
+                })
+                .curve(d3.curveLinear)
+
+            svg.append("path")
+                .data([dat])
+                .attr("d", line)
+                .attr('stroke-width', 3)
+                .attr('fill', 'none')
+                .attr('stroke', '#d3d3d3')
+
+        }
+
+        // svg.append("text")
+        //     .attr('x', "5")
+        //     .attr('y', 35)
+        //     .text('Projection A');
+        //
+        // svg.append("text")
+        //     .attr('x', "865")
+        //     .attr('y', 35)
+        //     .text('Projection B');
+    }
+
+    function findit(data, id, skip) {
+
+        for (let i = 0; i < data.length; i++) {
+            if (i == skip) continue
+            if (data[i].includes(id)) {
+                return i
+            }
+        }
+
+    }
+
+    function prep(clusters) {
+        // 0 == proj A, 1 == Proj B, 2 == Both
+
+        let res = [];
+
+        let scalex = d3.scaleLinear(d3.extent(data.map(d => d[0])), [25, 225])
+        let scaley = d3.scaleLinear(d3.extent(data.map(d => d[1])), [25, 225])
+
+
+        let scalex2 = d3.scaleLinear(d3.extent(data2.map(d => d[0])), [25, 225])
+        let scaley2 = d3.scaleLinear(d3.extent(data2.map(d => d[1])), [25, 225])
+
+        for (let i = 0; i < Math.max(clusters[0].length, clusters[1].length); i++) {
+            let temp = [];
+            if (i < clusters[0].length && i < clusters[1].length) {
+
+                let bob = clusters[0][i].slice().filter(value => clusters[1][i].includes(value))
+
+
+                for (let j = 0; j < clusters[0][i].length; j++) {
+
+                    if (!bob.includes(clusters[0][i][j])) {
+                        temp.push({
+                            data: [scalex(data[clusters[0][i][j]][0]), scaley(data[clusters[0][i][j]][1])],
+                            cluster: i,
+                            id: clusters[0][i][j],
+                            proj: 0,
+                            out: findit(clusters[1], clusters[0][i][j], i)
+                        })
+                    }
+                }
+                for (let j = 0; j < clusters[1][i].length; j++) {
+
+                    if (!bob.includes(clusters[1][i][j])) {
+                        temp.push({
+                            data: [scalex2(data2[clusters[1][i][j]][0]), scaley2(data2[clusters[1][i][j]][1])],
+                            cluster: i,
+                            id: clusters[1][i][j],
+                            proj: 1,
+                            out: findit(clusters[0], clusters[1][i][j], i)
+                        })
+                    }
+                }
+                for (let j = 0; j < bob.length; j++) {
+                    temp.push({
+                        data: [[scalex(data[bob[j]][0]), scaley(data[bob[j]][1])], [scalex2(data2[bob[j]][0]), scaley2(data2[bob[j]][1])]],
+                        cluster: i,
+                        id: bob[j],
+                        proj: 2
+                    })
+                }
+
+            } else if (i < clusters[0].length) {
+                for (let j = 0; j < clusters[0][i].length; j++) {
+                    temp.push({
+                        data: [scalex(data[clusters[0][i][j]][0]), scaley(data[clusters[0][i][j]][1])],
+                        cluster: i,
+                        id: clusters[0][i][j],
+                        proj: 0,
+                        out: findit(clusters[1], clusters[0][i][j], i)
+                    })
+                }
+            } else {
+                for (let j = 0; j < clusters[1][i].length; j++) {
+                    temp.push({
+                        data: [scalex(data2[clusters[1][i][j]][0]), scaley(data2[clusters[1][i][j]][1])],
+                        cluster: i,
+                        id: clusters[1][i][j],
+                        proj: 1,
+                        out: findit(clusters[0], clusters[1][i][j], i)
+                    })
+                }
+            }
+            res.push(temp.slice())
+        }
+        return res
+    }
+
+    function big(e) {
+        let temp = d3.select(this);
+
+        for (let i = 0; i < clusts[0][temp.attr('clust')].length; i++) {
+
+            d3.selectAll('circle[num="' + clusts[0][temp.attr('clust')][i] + '"]').transition().duration(200).attr("r", 5)
+        }
+        console.log('done');
+    }
+
+
+    function toClust(data) {
+
+        let res = d3.range(unique(data).length).map(d => []);
+        for (let i = 0; i < data.length; i++) {
+            res[data[i]].push(i)
+        }
+        return res
+    }
+
+    function unique(array) {
+        return array.filter(function (el, index, arr) {
+            return index == arr.indexOf(el);
+        });
+    }
+
+
+    function smal(e) {
+        let temp = d3.select(this)
+        d3.selectAll('circle').transition().duration(200).attr("r", 2)
+    }
+
+    function getCluster(data, clusters) {
+
+        return data.map((d, i) => {
+            for (let j = 0; j < clusters.length; j++) {
+                if (clusters[j].includes(i)) {
+                    d.push(j);
+                    return d
+                }
+            }
+            return clusters.length
+        })
+    }
+
+    function reorder(clusters, ref) {
+        // This is done to re-order cluster based on how similar they are to the ref.
+        let temp = d3.range(ref.length).map(d => []);
+        let mid = [];
+
+        let res = [];
+        for (let u = 0; u < clusters.length; u++) {
+            for (let i = 0; i < ref.length; i++) {
+
+                temp[u].push(arr_diff(clusters[u], ref[i]).length)
+            }
+
+            let argm = argMin(temp[u]);
+            if (!mid.includes(argm)) {
+                res.push(clusters[argm])
+                mid.push(argm)
+            } else {
+                let prov = temp[u].slice()
+                prov.splice(argm, 1)
+                argm = argMin(prov);
+                argm = temp[u].indexOf(prov[argm])
+                res.push(clusters[argm])
+                mid.push(argm)
+            }
+
+        }
+
+        return res
+    }
+
+    function argMin(array) {
+        return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] < r[0] ? a : r))[1];
+    }
+
+    function arr_diff(a1, a2) {
+
+        var a = [], diff = [];
+
+        for (var i = 0; i < a1.length; i++) {
+            a[a1[i]] = true;
+        }
+
+        for (var i = 0; i < a2.length; i++) {
+            if (a[a2[i]]) {
+                delete a[a2[i]];
+            } else {
+                a[a2[i]] = true;
+            }
+        }
+
+        for (var k in a) {
+            diff.push(k);
+        }
+
+        return diff;
+    }
+
+</script>
+
+</body>
+</html>

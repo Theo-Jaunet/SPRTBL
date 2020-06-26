@@ -97,6 +97,8 @@
 
     let clusts = [];
 
+    let lines = [];
+
     async function getData() {
         data = await d3.json('convs.json').then(d => {
             let dat = JSON.parse(d.replace(/'/g, '"'));
@@ -127,117 +129,6 @@
 
     getData().then(draw);
 
-    function getDist2(id, daa, n) {
-
-
-        let scalex = d3.scaleLinear(d3.extent(data.map(d => d[0])), [25, 225]);
-        let scaley = d3.scaleLinear(d3.extent(data.map(d => d[1])), [25, 225]);
-
-
-        let scalex2 = d3.scaleLinear(d3.extent(data2.map(d => d[0])), [25, 225]);
-        let scaley2 = d3.scaleLinear(d3.extent(data2.map(d => d[1])), [25, 225]);
-        // let ref = [data.find(d => d.id === id), data2.find(d => d.id === id)];
-
-
-        // console.log(ref);
-
-        let res = [[], []];
-
-        for (let i = 0; i < daa.length; i++) {
-            // if (data[i][2] !== id) {
-
-            res[0].push([euclidian_dist([scalex(+data[id][0]), scaley(+data[id][1])], [scalex(+data[i][0]), scaley(+data[i][1])]), daa[i].id])
-            res[1].push([euclidian_dist([scalex2(+data2[id][0]), scaley2(+data2[id][1])], [scalex2(+data2[i][0]), scaley2(+data2[i][1])]), daa[i].id])
-            // }
-        }
-        let temp = [];
-        for (let i = 0; i < res.length; i++) {
-            res[i].sort((a, b) => (a > b) ? 1 : (b > a) ? -1 : 0);
-            res[i].shift();
-            temp.push(res[i].slice(0, n))
-        }
-
-
-        let tempid = temp.slice();
-
-        for (let i = 0; i < tempid.length; i++) {
-            tempid[i] = tempid[i].map(d => d[1])
-        }
-
-        let arr = [];
-        arr.push(res[0].filter(d => {
-                return tempid[1].includes(d[1])
-            })
-        );
-
-        arr.push(res[1].filter(d => tempid[0].includes(d[1])));
-
-        let total = [];
-
-
-        for (let i = 0; i < arr.length; i++) {
-            total.push(arr[i].reduce((a, b) => {
-                return (+a) + (+b[0])
-            }, 0));
-        }
-        return total
-    }
-
-    function getDist(id, daa, n) {
-
-
-        let scalex = d3.scaleLinear(d3.extent(data.map(d => d[0])), [25, 225])
-        let scaley = d3.scaleLinear(d3.extent(data.map(d => d[1])), [25, 225])
-
-
-        let scalex2 = d3.scaleLinear(d3.extent(data2.map(d => d[0])), [25, 225])
-        let scaley2 = d3.scaleLinear(d3.extent(data2.map(d => d[1])), [25, 225])
-        // let ref = [data.find(d => d.id === id), data2.find(d => d.id === id)];
-
-
-        // console.log(ref);
-
-        let res = [[], []];
-
-        for (let i = 0; i < daa.length; i++) {
-            // if (data[i][2] !== id) {
-
-            res[0].push([euclidian_dist([scalex(+data[id][0]), scaley(+data[id][1])], [scalex(+data[i][0]), scaley(+data[i][1])]), daa[i].id])
-            res[1].push([euclidian_dist([scalex2(+data2[id][0]), scaley2(+data2[id][1])], [scalex2(+data2[i][0]), scaley2(+data2[i][1])]), daa[i].id])
-            // }
-        }
-        let temp = [];
-        for (let i = 0; i < res.length; i++) {
-            res[i].sort((a, b) => (a > b) ? 1 : (b > a) ? -1 : 0);
-            res[i].shift();
-            temp.push(res[i].slice(0, n))
-        }
-
-
-        let tempid = temp.slice();
-
-        for (let i = 0; i < tempid.length; i++) {
-            tempid[i] = tempid[i].map(d => d[1])
-        }
-
-        let arr = [];
-        arr.push(res[0].filter(d => {
-                return tempid[1].includes(d[1])
-            })
-        );
-
-        arr.push(res[1].filter(d => tempid[0].includes(d[1])));
-
-        let total = 0;
-
-
-        for (let i = 0; i < arr.length; i++) {
-            total += arr[i].reduce((a, b) => {
-                return (+a) + (+b[0])
-            }, 0);
-        }
-        return total
-    }
 
     function draw() {
 
@@ -267,23 +158,6 @@
                         y: scaley(d[1])
                     }
                 }));
-
-
-            // export2csv(temp.map(d => {
-            //     return {
-            //         x: scalex(d[0]),
-            //         y: scaley(d[1])
-            //     }
-            // }), i)
-
-            // km.cluster(temp.map(d => [scalex(d[0]), scaley(d[1])]));
-            // while (km.step()) {
-            //     km.findClosestCentroids();
-            //     km.moveCentroids();
-            //
-            //
-            //     if (km.hasConverged()) break;
-            // }
 
             let bob = toClust(dbscanner());
 
@@ -315,51 +189,26 @@
                 .on("mouseout", smal)
 
         }
-        // drawSankey()
         drawStats()
-
-
-    }
-
-
-    function export2csv(data, id) {
-
-
-        let csvContent = "data:text/csv;charset=utf-8,"
-            + data.map(e => e.x + ',' + e.y).join("\n");
-
-
-        var encodedUri = encodeURI(csvContent);
-        var link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "my_data" + id + ".csv");
-        document.body.appendChild(link); // Required for FF
-
-        link.click();
     }
 
     function drawStats() {
 
-
-        // let scalex = d3.scaleLinear(d3.extent(data.map(d => d[0])), [25, 225]);
-        // let scaley = d3.scaleLinear(d3.extent(data.map(d => d[1])), [25, 225]);
-        //
-        //
-        // let scalex2 = d3.scaleLinear(d3.extent(data2.map(d => d[0])), [25, 225]);
-        // let scaley2 = d3.scaleLinear(d3.extent(data2.map(d => d[1])), [25, 225]);
-
-
-        let hscale = d3.scaleLinear().domain([0, 1000]).range([1, 20]);
+        let hscale = d3.scaleSqrt().domain([0, 600]).range([1, 50]);
+        let wscale = d3.scaleLinear().domain([0, 1000]).range([3, 500]);
         const svg = d3.select('#main');
-
+        let rectSize = 15
+        let pad = 5
         const dataor = prep(clusts);
         // let color = d3.scaleOrdinal(d3.schemeCategory10);
-        const padding = 75
+        const padding = 75;
         let full = Math.max(...dataor.map(d => d.length)) / 2
         let recWidth = (900 - (padding * 2)) / (full * 2)
 
 
         let moritz = dataor.map((d, i) => [d.filter(d => d.proj == 2).length, i, d.length])
+        let head = d3.range(2).map(d => d3.range(moritz.length).map(d => []));
+        lines = d3.range(moritz.length).map(d => []);
         moritz.sort((a, b) => {
 
             if (a[0] > 0 && b[0] > 0) {
@@ -376,81 +225,139 @@
 
         for (let i = 0; i < dataor.length; i++) {
             let curdatoar = dataor[moritz[i][1]];
-            let done = d3.range(3).map(d => 0);
-            done[2] = +curdatoar.slice().filter(d => d.proj === 0).length;
-            done[1] = done[2] + (+curdatoar.slice().filter(d => d.proj === 2).length);
 
             svg.append("text")
                 .attr('x', 25)
-                .attr("y", 80 + (40 * i))
+                .attr("y", 60 + ((rectSize + pad) * i) + rectSize / 1.5)
                 .attr("fill", color(moritz[i][1]))
                 .text('Cluster ' + moritz[i][1]);
 
-            const cfull = full - (curdatoar.length / 2);
 
-            svg.append("text")
-                .attr('x', (padding * 1.5) + (cfull * recWidth) + (recWidth * curdatoar.length) + 10)
-                .attr('y', 80 + (40 * i) - 5)
-                .text(curdatoar.length);
-
-
-            curdatoar.map(d => {
-
-                    d['dist'] = getDist2(d.id, dataor[i], 5)
-
-                }
-            );
-            // getDist(dataor[i][0].id, dataor[i], 5);
-            //
-            // dataor[i].map(d => {
-            //     d['dist'] = euclidian_dist([scalex(data[d.id][0]), scaley(data[d.id][1])], [scalex2(data2[d.id][0]), scaley2(data2[d.id][1])])
-            //     return d
-            // });
-
-
-            // dataor[i].sort((a, b) => ((a.dist[0] + a.dist[1]) > (b.dist[0] + b.dist[1])) ? 1 : (((b.dist[0] + b.dist[1]) > (a.dist[0] + a.dist[1])) ? -1 : 0));
-            // dataor[i].sort((a, b) => ((a.dist[1]) > (b.dist[1])) ? 1 : (((b.dist[1]) > (a.dist[1])) ? -1 : 0));
-            curdatoar.sort((a, b) => ((a.dist[0]) > (b.dist[0])) ? 1 : (((b.dist[0]) > (a.dist[0])) ? -1 : 0)); // sort by size of first rect
-
-            // console.log(dataor[i]);
-
-            for (let j = 0; j < curdatoar.length; j++) {
-
+            if (moritz[i][0] > 0) {
                 svg.append('rect')
-                    .attr("x", (padding * 1.5) + (cfull * recWidth) + (recWidth * done[curdatoar[j].proj]))
-                    .attr("y", 60 + (40 * i))
-                    .attr("width", recWidth)
-                    .attr("fill", () => {
-
-                        if (curdatoar[j].proj === 0) {
-                            return 'green'
-                        } else if (curdatoar[j].proj === 1) {
-                            return 'red'
-                        } else {
-                            return 'purple'
-                        }
-                    })
-                    .attr("height", hscale(curdatoar[j].dist[0]));
-
-
+                    .attr("x", 500 - (hscale(moritz[i][0]) / 2))
+                    .attr("y", 60 + ((rectSize + pad) * i))
+                    .attr("width", hscale(moritz[i][0]))
+                    .attr("height", rectSize)
+                    .attr('fill', 'steelblue');
+            } else {
                 svg.append('rect')
-                    .attr("x", (padding * 1.5) + (cfull * recWidth) + (recWidth * done[curdatoar[j].proj]))
-                    .attr("y", 60 + (40 * i) + hscale(curdatoar[j].dist[0]) + 1)
-                    .attr("width", recWidth)
-                    .attr("fill", () => {
-
-                        if (curdatoar[j].proj === 0) {
-                            return 'green'
-                        } else if (curdatoar[j].proj === 1) {
-                            return 'red'
-                        } else {
-                            return 'purple'
-                        }
-                    })
-                    .attr("height", hscale(curdatoar[j].dist[1]));
-
-                done[curdatoar[j].proj] += 1;
+                    .attr("x", 500)
+                    .attr("y", 60 + ((rectSize + pad) * i))
+                    .attr("width", hscale(moritz[i][0]))
+                    .attr("height", rectSize)
+                    .attr('fill', '#808080');
             }
+
+            for (let j = 0; j < 2; j++) {
+                let done = 0;
+                let dat = curdatoar.filter(d => d.proj === j);
+                let target = data.length;
+                let cumul = hscale(moritz[0][0]);
+                for (let k = 0; k < moritz.length; k++) {
+                    let res = dat.filter(d => d.out === moritz[k][1]);
+
+                    if (k === 0) {
+                        svg.append('text')
+                            .attr("x", (j === 0 ? (500 + pad - (hscale(moritz[0][0]) / 2)) - ((rectSize + (pad * 2)) * (i + 1)) : (500 + (hscale(moritz[0][0]) / 2)) + ((rectSize + (pad * 2)) * (i + 1))))
+                            .attr("y", 30)
+                            .attr("transform", "rotate(-35," + (j === 0 ? (500 + pad - (hscale(moritz[0][0]) / 2)) - ((rectSize + (pad * 2)) * (i + 1)) : (500 + (hscale(moritz[0][0]) / 2)) + ((rectSize + (pad * 2)) * (i + 1))) + ",50)")
+                            .text("C." + moritz[i][1]);
+
+                        head[j][i] = [(j === 0 ? (500 + pad - (hscale(moritz[0][0]) / 2)) - ((rectSize + (pad * 2)) * (i + 1)) : (500 + (hscale(moritz[0][0]) / 2)) + ((rectSize + (pad * 2)) * (i + 1))), 2, k, j + 1]
+                    }
+
+                    if (res.length > 0) {
+
+                        svg.append('rect')
+                            .attr("x", j === 0 ? (500 - (hscale(moritz[0][0]) / 2)) - (cumul + (hscale(res.length))) : (500 + (hscale(moritz[0][0]) / 2)) + (cumul))
+                            .attr("y", 60 + ((rectSize + pad) * i))
+                            .attr("width", hscale(res.length))
+                            .attr("height", rectSize)
+                            // .attr('stroke-width', 1)
+                            // .attr('stroke', '#5b5b5b')
+                            .attr('fill', (j === 0 ? 'red' : 'green'));
+
+
+                        lines[i].push([j === 0 ? ((500 + (hscale(res.length) / 2)) - (hscale(moritz[0][0]) / 2)) - (cumul + (hscale(res.length))) : ((500 + (hscale(res.length) / 2)) + (hscale(moritz[0][0]) / 2)) + (cumul), 0, k, j + 1]);
+                        lines[i].push([j === 0 ? ((500 + (hscale(res.length) / 2)) - (hscale(moritz[0][0]) / 2)) - (cumul + (hscale(res.length))) : ((500 + (hscale(res.length) / 2)) + (hscale(moritz[0][0]) / 2)) + (cumul), 1, k, j + 1]);
+                        cumul += (hscale(res.length) + pad)
+
+                    } else {
+                        svg.append('rect')
+                            .attr("x", j === 0 ? (500 - (hscale(moritz[0][0]) / 2)) - (cumul + (hscale(res.length))) : (500 + (hscale(moritz[0][0]) / 2)) + (cumul))
+                            .attr("y", 60 + ((rectSize + pad) * i))
+                            .attr("width", 2)
+                            // .attr("stroke", '#d3d3d3')
+                            .attr("height", rectSize)
+                            .attr('fill', "#d3d3d3");
+
+
+                        lines[i].push([j === 0 ? ((500 + hscale(res.length) / 2) - (hscale(moritz[0][0]) / 2)) - (cumul + (hscale(res.length))) : ((500 + hscale(res.length) / 2) + (hscale(moritz[0][0]) / 2)) + (cumul), 0, k, j + 1]);
+                        lines[i].push([j === 0 ? ((500 + hscale(res.length) / 2) - (hscale(moritz[0][0]) / 2)) - (cumul + (hscale(res.length))) : ((500 + hscale(res.length) / 2) + (hscale(moritz[0][0]) / 2)) + (cumul), 1, k, j + 1]);
+                        cumul += 4
+                    }
+                    // lines[i].push([cumul - 4, 0, k, j + 1]);
+
+                    if (done === target) break
+                }
+            }
+        }
+
+        console.log(head);
+        let fakeid = 0;
+        for (let l = 0; l < (lines.length) * 2; l++) { //lines.length * 2
+
+            let jind = (l < lines.length ? 0 : 1);
+            let dat = [];
+
+            if (jind == 0) {
+                console.log(l);
+                dat.push(head[jind][l]);
+            } else {
+                console.log('asasa');
+                console.log((l - (lines.length)));
+                dat.push(head[jind][l - (lines.length)])
+            }
+            // console.log(lines);
+            for (let i = 0; i < lines.length; i++) {
+                // console.log(lines[i]);
+                if (jind == 0) {
+                    dat = dat.concat(lines[i].filter(d => (d[2] == l && d[3] == 1)))
+                } else {
+                    dat = dat.concat(lines[i].filter(d => (d[2] == (l - (lines.length)) && d[3] == 2)))
+                }
+            }
+
+            console.log(dat);
+
+            let line = d3.line()
+                .x(function (d, i) {
+                    if (d[1] === 2) {
+                        return d[0]
+                    } else {
+                        return d[0]
+                    }
+                })
+                .y(function (d, i) {
+                    if (i > 0) {
+                        if (d[1] === 0) {
+                            return (50)  + ((rectSize + pad) * (i / 2));
+                        } else {
+                            return (54 ) + ((rectSize + pad) * (i / 2));
+                        }
+                    } else {
+                        return 33
+                    }
+                })
+                .curve(d3.curveLinear);
+
+            svg.append("path")
+                .data([dat])
+                .attr("d", line)
+                .attr('stroke-width', 1)
+                .attr('stroke', '#5b5b5b')
+                .attr('fill', 'none')
         }
 
         svg.append("text")
@@ -462,7 +369,29 @@
             .attr('x', "865")
             .attr('y', 35)
             .text('Projection B');
+
+        d3.selectAll('path').moveToBack()
     }
+
+    function findit(data, id, skip) {
+
+        for (let i = 0; i < data.length; i++) {
+            if (i === skip) continue;
+            if (data[i].includes(id)) {
+                return i
+            }
+        }
+
+    }
+
+    d3.selection.prototype.moveToBack = function () {
+        return this.each(function () {
+            var firstChild = this.parentNode.firstChild;
+            if (firstChild) {
+                this.parentNode.insertBefore(this, firstChild);
+            }
+        });
+    };
 
 
     function prep(clusters) {
@@ -470,12 +399,12 @@
 
         let res = [];
 
-        let scalex = d3.scaleLinear(d3.extent(data.map(d => d[0])), [25, 225])
-        let scaley = d3.scaleLinear(d3.extent(data.map(d => d[1])), [25, 225])
+        let scalex = d3.scaleLinear(d3.extent(data.map(d => d[0])), [25, 225]);
+        let scaley = d3.scaleLinear(d3.extent(data.map(d => d[1])), [25, 225]);
 
 
-        let scalex2 = d3.scaleLinear(d3.extent(data2.map(d => d[0])), [25, 225])
-        let scaley2 = d3.scaleLinear(d3.extent(data2.map(d => d[1])), [25, 225])
+        let scalex2 = d3.scaleLinear(d3.extent(data2.map(d => d[0])), [25, 225]);
+        let scaley2 = d3.scaleLinear(d3.extent(data2.map(d => d[1])), [25, 225]);
 
         for (let i = 0; i < Math.max(clusters[0].length, clusters[1].length); i++) {
             let temp = [];
@@ -491,7 +420,8 @@
                             data: [scalex(data[clusters[0][i][j]][0]), scaley(data[clusters[0][i][j]][1])],
                             cluster: i,
                             id: clusters[0][i][j],
-                            proj: 0
+                            proj: 0,
+                            out: findit(clusters[1], clusters[0][i][j], i)
                         })
                     }
                 }
@@ -502,19 +432,17 @@
                             data: [scalex2(data2[clusters[1][i][j]][0]), scaley2(data2[clusters[1][i][j]][1])],
                             cluster: i,
                             id: clusters[1][i][j],
-                            proj: 1
+                            proj: 1,
+                            out: findit(clusters[0], clusters[1][i][j], i)
                         })
                     }
                 }
-
                 for (let j = 0; j < bob.length; j++) {
                     temp.push({
                         data: [[scalex(data[bob[j]][0]), scaley(data[bob[j]][1])], [scalex2(data2[bob[j]][0]), scaley2(data2[bob[j]][1])]],
                         cluster: i,
                         id: bob[j],
                         proj: 2
-
-
                     })
                 }
 
@@ -524,28 +452,24 @@
                         data: [scalex(data[clusters[0][i][j]][0]), scaley(data[clusters[0][i][j]][1])],
                         cluster: i,
                         id: clusters[0][i][j],
-                        proj: 0
+                        proj: 0,
+                        out: findit(clusters[1], clusters[0][i][j], i)
                     })
                 }
-
             } else {
                 for (let j = 0; j < clusters[1][i].length; j++) {
                     temp.push({
                         data: [scalex(data2[clusters[1][i][j]][0]), scaley(data2[clusters[1][i][j]][1])],
                         cluster: i,
                         id: clusters[1][i][j],
-                        proj: 1
+                        proj: 1,
+                        out: findit(clusters[0], clusters[1][i][j], i)
                     })
                 }
-
             }
-
             res.push(temp.slice())
         }
-
-
         return res
-
     }
 
     function big(e) {
@@ -555,19 +479,7 @@
 
             d3.selectAll('circle[num="' + clusts[0][temp.attr('clust')][i] + '"]').transition().duration(200).attr("r", 5)
         }
-
         console.log('done');
-
-    }
-
-
-    function euclidian_dist(a, b) {
-        let sum = 0;
-
-        for (let n = 0; n < a.length; n++) {
-            sum += Math.pow(a[n] - b[n], 2)
-        }
-        return Math.sqrt(sum)
     }
 
 
@@ -619,14 +531,14 @@
 
             let argm = argMin(temp[u]);
             if (!mid.includes(argm)) {
-                res.push(clusters[argm])
+                res.push(clusters[argm]);
                 mid.push(argm)
             } else {
-                let prov = temp[u].slice()
-                prov.splice(argm, 1)
+                let prov = temp[u].slice();
+                prov.splice(argm, 1);
                 argm = argMin(prov);
-                argm = temp[u].indexOf(prov[argm])
-                res.push(clusters[argm])
+                argm = temp[u].indexOf(prov[argm]);
+                res.push(clusters[argm]);
                 mid.push(argm)
             }
 
@@ -662,107 +574,6 @@
         return diff;
     }
 
-    function sankey() {
-        const sankey = d3.sankey()
-            .nodeId(d => d.name)
-            .nodeAlign(d3[`sankey${align[0].toUpperCase()}${align.slice(1)}`])
-            .nodeWidth(15)
-            .nodePadding(10)
-            .extent([[1, 5], [780 - 1, 500 - 5]])
-        // .nodeAlign(nodeAlignment)
-
-        return ({nodes, links}) => sankey({
-            nodes: nodes.map(d => Object.assign({}, d)),
-            links: links.map(d => Object.assign({}, d))
-        });
-    }
-
-    function drawSankey() {
-        // let color = d3.scaleOrdinal(d3.schemeCategory10);
-
-        const {nodes, links} = sankey()(makeData(clusts));
-        // console.log('CALLLLLEEDDD');
-        // console.log(sankey()(makeData(clusts)));
-
-
-        const svg = d3.select('#main')
-        svg.append("g")
-            .attr("stroke", "#000")
-            .selectAll("rect")
-            .data(nodes)
-            .join("rect")
-            .attr("x", d => d.x0)
-            .attr("y", d => d.y0)
-            .attr("height", d => d.y1 - d.y0)
-            .attr("width", d => d.x1 - d.x0)
-            .attr("fill", d => color(d.category))
-            .append("title")
-            .text(d => d.name + '\n' + d.value);
-
-        const link = svg.append("g")
-            .attr("fill", "none")
-            .attr("stroke-opacity", 0.5)
-            .selectAll("g")
-            .data(links)
-            .join("g")
-            .style("mix-blend-mode", "multiply");
-
-
-        link.append("path")
-            .attr("d", d3.sankeyLinkHorizontal())
-            .attr("stroke", d =>
-                color(d.target.category))
-            .attr("stroke-width", d => Math.max(1, d.width));
-
-        link.append("title")
-            .text(d => d.source.name + ' → ' + d.target.name + '\n' + d.value);
-
-        // svg.append("g")
-        //     .attr("font-family", "sans-serif")
-        //     .attr("font-size", 10)
-        //     .selectAll("text")
-        //     .data(nodes)
-        //     .join("text")
-        //     .attr("x", d => d.x0 < 780 / 2 ? d.x1 + 6 : d.x0 - 6)
-        //     .attr("y", d => (d.y1 + d.y0) / 2)
-        //     .attr("dy", "0.35em")
-        //     .attr("text-anchor", d => d.x0 < 780 / 2 ? "start" : "end")
-        //     .text(d => d.name);
-    }
-
-
-    function makeData(data) {
-
-
-        let nodes = [];
-        let links = [];
-
-        for (let i = 0; i < data.length; i++) {
-            for (let j = 0; j < data[i].length; j++) {
-                nodes.push({name: 'layer_' + i + '_clust' + j, category: j})
-            }
-        }
-
-        for (let i = 0; i < data.length - 1; i++) {
-            for (let u = 0; u < data[i].length; u++) {
-                for (let j = 0; j < data[i + 1].length; j++) {
-                    const intersection = data[i][u].slice().filter(element => data[i + 1][j].includes(element));
-                    if (i == 1 && u == 0) {
-
-                    }
-                    if (intersection.length > 0) {
-                        links.push({
-                            source: 'layer_' + i + '_clust' + u,
-                            target: 'layer_' + (i + 1) + '_clust' + j,
-                            value: intersection.length
-                        })
-                    }
-                }
-
-            }
-        }
-        return {nodes, links, units: "TWh"}
-    }
 </script>
 
 </body>
