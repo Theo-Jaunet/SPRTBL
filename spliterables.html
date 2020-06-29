@@ -108,11 +108,57 @@
 
     getData().then(drawStats);
 
+
+    function getbottom(nodes, refi) {
+
+        let res = [];
+        let toproc = data.links.filter(d => d.source === refi);
+        let topind = toproc.map(d => d.target);
+
+        let toproc2 = data.links.filter(d => d.target === refi);
+        let topind2 = toproc2.map(d => d.source);
+
+        for (let i = refi + 1; i < nodes.length; i++) {
+            if (topind.includes(i)) {
+                res.push(toproc[topind.indexOf(i)].value) // TODO elem
+            } else if (topind2.includes(i)) {
+                res.push(toproc2[topind2.indexOf(i)].value) // TODO elem
+            } else {
+                res.push(0) // TODO elem
+            }
+        }
+//        console.log(res);
+        return res;
+    }
+
+
+    $("body").on('mouseover', "rect", function (e) {
+
+        let tline = $(this).attr("line");
+        let tcol = $(this).attr("col");
+        const dur = 50;
+        d3.selectAll("rect").transition().duration(dur).style("opacity", 0.3);
+        d3.selectAll('path').transition().duration(dur).style("opacity", 0.3);
+        d3.selectAll('rect[col="' + tcol + '"]').transition().duration(dur).style("opacity", 1);
+        d3.selectAll('rect[line="' + tline + '"]').transition().duration(dur).style("opacity", 1);
+        d3.selectAll('path[col="' + tcol + '"]').transition().duration(dur).style("opacity", 1).attr('stroke-width', 2)
+
+    });
+
+    $("body").on('mouseout', "rect", function (e) {
+        const dur = 50;
+        d3.selectAll("rect").transition().duration(dur).style("opacity", 1)
+        d3.selectAll('path').transition().duration(dur).style("opacity", 1).attr('stroke-width', 2)
+
+    });
+
+
     function drawStats() {
 
         const svg = d3.select('#main');
-        let rectSize = 10
-        let pad = 2
+        let rectSize = 14
+        let pad = 7
+        let hscale = d3.scaleSqrt().domain([0, 50]).range([1, 50]);
         // const dataor = prep(clusts);
         // let color = d3.scaleOrdinal(d3.schemeCategory10);
         const padding = 125;
@@ -122,6 +168,12 @@
         let moritz = data.nodes.slice().sort((a, b) => {
             return ((a.name) > (b.name)) ? 1 : (((b.name) > (a.name)) ? -1 : 0)
         });
+        let lines = d3.range(moritz.length).map(d => []);
+        let tada = [[], []];
+
+        const middle = 1200;
+        const start = 120
+        let head = d3.range(2).map(d => d3.range(data.nodes.length).map(d => []));
 
 
         for (let i = 0; i < data.nodes.length; i++) {
@@ -130,7 +182,7 @@
             svg.append("text")
                 .attr('x', padding)
                 .attr("text-anchor", "end")
-                .attr("y", 60 + ((rectSize + (pad * 2)) * i) + rectSize / 1.5)
+                .attr("y", start + ((rectSize + (pad)) * i) + rectSize / 1.5)
                 .text(data.nodes[i].name);
 
             let toproc = data.links.filter(d => d.source === i);
@@ -139,124 +191,202 @@
             let toproc2 = data.links.filter(d => d.target === i);
             let topind2 = toproc2.map(d => d.source);
 
-            let cumul = rectSize + pad;
-            for (let j = 0; j < data.nodes.length; j++) {
+            let reflex = toproc2.length + toproc.length;
 
-                if (topind.includes(j) || j === i || topind2.includes(j)) {
+            if (reflex > 0) {
+                svg.append('rect')
+                    .attr("x", middle - (hscale(reflex) / 2))
+                    .attr("y", start + ((rectSize + pad) * i))
+                    .attr("width", hscale(reflex))
+                    .attr("height", rectSize)
+                    .attr('line', i)
+                    .attr('fill', 'steelblue');
+            } else {
+                svg.append('rect')
+                    .attr("x", middle)
+                    .attr("y", start + ((rectSize + pad) * i))
+                    .attr("width", hscale(0))
+                    .attr("height", rectSize)
+                    .attr('line', i)
+                    .attr('fill', '#808080');
+            }
+
+            let tres = [];
+            for (let j = 0; j < i; j++) {
+
+                if (topind.includes(j)) {
+                    tres.push(toproc[topind.indexOf(j)].value) // TODO elem
+                } else if (topind2.includes(j)) {
+                    tres.push(toproc2[topind2.indexOf(j)].value) // TODO elem
+                } else {
+                    tres.push(0) // TODO elem
+                }
+            }
+
+            tada[0].push(tres.concat(getbottom(data.nodes, i)));
+            let j = 0;
+
+
+            let cumul = rectSize + pad;
+            for (let w = 0; w < tada[0][i].length; w++) {
+                let res = tada[j][i][w];
+
+
+                if (w === 0) {
+                    svg.append('text')
+                        .attr("x", (j === 0 ? (middle) - ((rectSize + (pad)) * (i + 2)) : (middle) + ((rectSize + (pad * 2)) * (i + 1))))
+                        .attr("y", 80)
+                        .attr("transform", "rotate(-65," + (j === 0 ? (middle) - ((rectSize + (pad)) * (i + 2)) : (middle) + ((rectSize + (pad)) * (i + 1))) + ",50)")
+                        .text(data.nodes[i].name);
+
+                    head[j][i] = [(j === 0 ? (middle) - ((rectSize + (pad)) * (i + 1)) : (middle) + ((rectSize + (pad)) * (i + 1))), 2, w, j + 1]
+                }
+
+                if (res > 0) {
+
                     svg.append('rect')
-                        .attr("x", padding + cumul)
-                        .attr("y", 60 + ((rectSize + (pad * 2)) * i))
-                        .attr("width", rectSize)
+                        .attr("x", j === 0 ? (middle) - (cumul + (hscale(res))) : (middle) + (cumul))
+                        .attr("y", start + ((rectSize + pad) * i))
+                        .attr("width", hscale(res))
                         .attr("height", rectSize)
-                        .attr('fill', 'green');
+                        // .attr('stroke-width', 1)
+                        .attr('line', i)
+                        .attr("col", w)
+                        // .attr('stroke', '#5b5b5b')
+                        .attr('fill', (j === 0 ? 'red' : 'green'));
+
+                    lines[i].push([j === 0 ? ((middle + (hscale(res) / 2))) - (cumul + (hscale(res))) : ((middle + (hscale(res) / 2))) + (cumul), 0, w, j + 1]);
+                    lines[i].push([j === 0 ? ((middle + (hscale(res) / 2))) - (cumul + (hscale(res))) : ((middle + (hscale(res) / 2))) + (cumul), 1, w, j + 1]);
+
+                    cumul += (hscale(res) + pad)
 
                 } else {
                     svg.append('rect')
-                        .attr("x", padding + cumul)
-                        .attr("y", 60 + ((rectSize + (pad * 2)) * i))
-                        .attr("width", rectSize)
+                        .attr("x", j === 0 ? (middle) - (cumul + (hscale(res))) : (middle) + (cumul))
+                        .attr("y", start + ((rectSize + pad) * i))
+                        .attr("width", 2)
+                        .attr('line', i)
+                        .attr("col", w)
+                        // .attr("stroke", '#d3d3d3')
                         .attr("height", rectSize)
-                        .attr('fill', '#d3d3d3');
+                        .attr('fill', "#d3d3d3");
 
+
+                    lines[i].push([j === 0 ? ((middle + hscale(res) / 2) - (cumul + (hscale(res)))) : ((middle + hscale(res) / 2)) + (cumul), 0, w, j + 1]);
+                    lines[i].push([j === 0 ? ((middle + hscale(res) / 2) - (cumul + (hscale(res)))) : ((middle + hscale(res) / 2)) + (cumul), 1, w, j + 1]);
+                    cumul += 4
                 }
-                cumul += (rectSize + pad)
             }
-
-            // if (moritz[i][0] > 0) {
-            //     svg.append('rect')
-            //         .attr("x", 500)
-            //         .attr("y", 60 + ((rectSize + pad) * i))
-            //         .attr("width", rectSize)
-            //         .attr("height", rectSize)
-            //         .attr('fill', 'steelblue');
-            // } else {
-            //     svg.append('rect')
-            //         .attr("x", 500)
-            //         .attr("y", 60 + ((rectSize + pad) * i))
-            //         .attr("width", rectSize)
-            //         .attr("height", rectSize)
-            //         .attr('fill', '#808080');
-            // }
-
-            /*            for (let j = 0; j < 2; j++) {
-                            let done = 0;
-                            let dat = curdatoar.filter(d => d.proj === j);
-                            let target = data.length;
-                            let cumul = rectSize + pad;
-
-
-                            for (let k = 0; k < moritz.length; k++) {
-                                let res = dat.filter(d => d.out === moritz[k][1]);
-
-                                if (k === 0) {
-                                    svg.append('text')
-                                        .attr("x", (j === 0 ? (500 + pad) - ((rectSize + pad) * (i + 1)) : (500) + ((rectSize + pad) * (i + 1))))
-                                        .attr("y", 50)
-                                        .text("C." + moritz[i][1])
-                                }
-
-                                if (res.length > 0) {
-                                    svg.append('rect')
-                                        .attr("x", j === 0 ? (500 + rectSize - (pad / 2)) - (cumul + (rectSize - pad)) : (500) + (cumul))
-                                        .attr("y", 60 + ((rectSize + pad) * i))
-                                        .attr("width", rectSize)
-                                        .attr("height", rectSize)
-                                        .attr('fill', (j === 1 ? 'red' : 'green'));
-
-                                    cumul += (rectSize + pad)
-
-                                } else {
-                                    cumul += 1 + pad
-                                }
-
-                                lines[i].push([cumul, 0, k, j + 1]);
-                                lines[i].push([cumul, 1, k, j + 1]);
-                                if (done === target) break
-                            }
-
-                        }*/
         }
 
+        tada[1] = tada[0][0].map((_, colIndex) => tada[0].map(row => row[colIndex]));
+        console.log(tada[1]);
+        console.log(tada[0]);
 
-        for (let l = 0; l < lines.length * 2; l++) { //lines.length
+        for (let i = 0; i < data.nodes.length - 1; i++) {
+            let j = 1;
+            let cumul = rectSize + pad;
+            for (let w = 0; w < data.nodes.length - 1; w++) {
+                let res = tada[j][i][w];
 
-            let dat = []
-            // console.log(lines);
-            for (let i = 0; i < lines.length; i++) {
-                // console.log(lines[i]);
-                if (l < lines.length / 2) {
-                    dat = dat.concat(lines[i].filter(d => (d[2] == l && d[3] == 1)))
-                } else {
-                    dat = dat.concat(lines[i].filter(d => (d[2] == l && d[3] == 2)))
+                if (w === 0) {
+                    svg.append('text')
+                        .attr("x", (j === 0 ? (middle) - ((rectSize + (pad)) * (i + 2)) : (middle) + ((rectSize + (pad)) * (i + 1))))
+                        .attr("y", 80)
+                        .attr("transform", "rotate(-65," + (j === 0 ? (middle) - ((rectSize + (pad)) * (i + 2)) : (middle) + ((rectSize + (pad)) * (i + 1))) + ",50)")
+                        .text(data.nodes[i].name);
+
+                    head[j][i] = [(j === 0 ? (middle) - ((rectSize + (pad)) * (i + 1)) : (middle) + ((rectSize + (pad)) * (i + 1))), 2, w, j + 1]
                 }
 
-                // dat.push(lines[i][l])
-                // dat.push(lines[i][l])
+                if (res > 0) {
+
+                    svg.append('rect')
+                        .attr("x", j === 0 ? (middle) - (cumul + (hscale(res))) : (middle) + (cumul))
+                        .attr("y", start + ((rectSize + pad) * i))
+                        .attr("width", hscale(res))
+                        .attr("height", rectSize)
+                        .attr('line', i)
+                        .attr("col", w)
+                        // .attr('stroke-width', 1)
+                        // .attr('stroke', '#5b5b5b')
+                        .attr('fill', (j === 0 ? 'red' : 'green'));
+
+                    lines[i].push([j === 0 ? ((middle + (hscale(res) / 2))) - (cumul + (hscale(res))) : ((middle + (hscale(res) / 2))) + (cumul), 0, w, j + 1]);
+                    lines[i].push([j === 0 ? ((middle + (hscale(res) / 2))) - (cumul + (hscale(res))) : ((middle + (hscale(res) / 2))) + (cumul), 1, w, j + 1]);
+
+                    cumul += (hscale(res) + pad)
+
+                } else {
+                    svg.append('rect')
+                        .attr("x", j === 0 ? (middle) - (cumul + (hscale(res))) : (middle) + (cumul))
+                        .attr("y", start + ((rectSize + pad) * i))
+                        .attr("width", 2)
+                        .attr('line', i)
+                        .attr("col", w)
+                        // .attr("stroke", '#d3d3d3')
+                        .attr("height", rectSize)
+                        .attr('fill', "#d3d3d3");
+
+
+                    lines[i].push([j === 0 ? ((middle + hscale(res) / 2) - (cumul + (hscale(res)))) : ((middle + hscale(res) / 2)) + (cumul), 0, w, j + 1]);
+                    lines[i].push([j === 0 ? ((middle + hscale(res) / 2) - (cumul + (hscale(res)))) : ((middle + hscale(res) / 2)) + (cumul), 1, w, j + 1]);
+                    cumul += 4
+                }
+
             }
-            console.log(l);
-            console.log(dat);
+        }
+
+        for (let l = 0; l < (lines.length * 2) - 1; l++) { //lines.length * 2
+
+            let jind = (l < lines.length ? 0 : 1);
+            let dat = [];
+            let lind = l
+            if (jind == 0) {
+                dat.push(head[jind][l]);
+            } else {
+                lind = l - (lines.length)
+                dat.push(head[jind][l - (lines.length)])
+            }
+            // console.log(lines);
+
+            for (let i = 0; i < lines.length; i++) {
+                // console.log(lines[i]);
+                if (jind == 0) {
+                    dat = dat.concat(lines[i].filter(d => (d[2] == l && d[3] == 1)))
+                } else {
+                    dat = dat.concat(lines[i].filter(d => (d[2] == (l - (lines.length)) && d[3] == 2)))
+                }
+            }
+
             let line = d3.line()
                 .x(function (d, i) {
-
-                    return l < lines.length / 2 ? (500 + rectSize + pad) - (d[0]) : (500) + (d[0])
-
-                })
-                .y(function (d, i) {
-                    if (d[1] == 0) {
-                        return 60 + ((rectSize + pad) * (i / 2));
+                    if (d[1] === 2) {
+                        return d[0]
                     } else {
-                        return 60 + (rectSize / 2) + ((rectSize + pad) * (i / 2));
+                        return d[0]
                     }
                 })
-                .curve(d3.curveLinear)
+                .y(function (d, i) {
+                    if (i > 0) {
+                        if (d[1] === 0) {
+                            return (start - 10) + ((rectSize + pad) * (i / 2));
+                        } else {
+                            return (start - 5) + ((rectSize + pad) * (i / 2));
+                        }
+                    } else {
+                        return 60
+                    }
+                })
+                .curve(d3.curveLinear);
 
             svg.append("path")
                 .data([dat])
                 .attr("d", line)
-                .attr('stroke-width', 3)
+                .attr('line', lind)
+                .attr('stroke-width', 1)
+                .attr('stroke', '#5b5b5b')
                 .attr('fill', 'none')
-                .attr('stroke', '#d3d3d3')
-
         }
 
         // svg.append("text")

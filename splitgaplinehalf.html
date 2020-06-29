@@ -210,32 +210,11 @@
         drawStats()
     }
 
-
-    $("body").on('mouseover', "rect", function (e) {
-
-        let tline = $(this).attr("line");
-        let tcol = $(this).attr("col");
-        const dur = 50;
-        d3.selectAll("rect").transition().duration(dur).style("opacity", 0.3);
-        d3.selectAll('path').transition().duration(dur).style("opacity", 0.3);
-        d3.selectAll('rect[col="' + tcol + '"]').transition().duration(dur).style("opacity", 1);
-        d3.selectAll('rect[line="' + tline + '"]').transition().duration(dur).style("opacity", 1);
-        d3.selectAll('path[col="' + tcol + '"]').transition().duration(dur).style("opacity", 1).attr('stroke-width', 2)
-
-    });
-
-    $("body").on('mouseout', "rect", function (e) {
-        const dur = 50;
-        d3.selectAll("rect").transition().duration(dur).style("opacity", 1)
-        d3.selectAll('path').transition().duration(dur).style("opacity", 1).attr('stroke-width', 2)
-
-    });
-
     function drawStats() {
 
         let hscale = d3.scaleSqrt().domain([0, 600]).range([1, 50]);
         let wscale = d3.scaleLinear().domain([0, 1000]).range([3, 500]);
-        const svg = d3.select('#main');
+        const svg = d3.select('#main').append('g').attr("transform", 'rotate(90,500,138) translate(200,0)')
         let rectSize = 15
         let pad = 5
         const dataor = prep(clusts);
@@ -279,7 +258,6 @@
                     .attr("y", 60 + ((rectSize + pad) * i))
                     .attr("width", hscale(moritz[i][0]))
                     .attr("height", rectSize)
-                    .attr('line', i)
                     .attr('fill', 'steelblue');
             } else {
                 svg.append('rect')
@@ -287,11 +265,10 @@
                     .attr("y", 60 + ((rectSize + pad) * i))
                     .attr("width", hscale(moritz[i][0]))
                     .attr("height", rectSize)
-                    .attr('line', i)
                     .attr('fill', '#808080');
             }
 
-            for (let j = 0; j < 2; j++) {
+            for (let j = 0; j < 1; j++) {
                 let done = 0;
                 let dat = curdatoar.filter(d => d.proj === j);
                 let target = data.length;
@@ -316,8 +293,6 @@
                             .attr("y", 60 + ((rectSize + pad) * i))
                             .attr("width", hscale(res.length))
                             .attr("height", rectSize)
-                            .attr('line', i)
-                            .attr("col", k)
                             // .attr('stroke-width', 1)
                             // .attr('stroke', '#5b5b5b')
                             .attr('fill', (j === 0 ? 'red' : 'green'));
@@ -332,8 +307,6 @@
                             .attr("x", j === 0 ? (500) - (cumul + (hscale(res.length))) : (500) + (cumul))
                             .attr("y", 60 + ((rectSize + pad) * i))
                             .attr("width", 2)
-                            .attr('line', i)
-                            .attr("col", k)
                             // .attr("stroke", '#d3d3d3')
                             .attr("height", rectSize)
                             .attr('fill', "#d3d3d3");
@@ -356,7 +329,7 @@
 
             let jind = (l < lines.length ? 0 : 1);
             let dat = [];
-            let lind = l
+
             if (jind == 0) {
                 console.log(l);
                 dat.push(head[jind][l]);
@@ -364,7 +337,6 @@
                 console.log('asasa');
                 console.log((l - (lines.length)));
                 dat.push(head[jind][l - (lines.length)])
-                lind = l - (lines.length)
             }
             // console.log(lines);
             for (let i = 0; i < lines.length; i++) {
@@ -404,7 +376,6 @@
                 .attr("d", line)
                 .attr('stroke-width', 1)
                 .attr('stroke', '#5b5b5b')
-                .attr("col", lind)
                 .attr('fill', 'none')
         }
 
