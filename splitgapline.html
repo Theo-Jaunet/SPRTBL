@@ -338,7 +338,6 @@
                             .attr("height", rectSize)
                             .attr('fill', "#d3d3d3");
 
-
                         lines[i].push([j === 0 ? ((500 + hscale(res.length) / 2) - (cumul + (hscale(res.length)))) : ((500 + hscale(res.length) / 2)) + (cumul), 0, k, j + 1]);
                         lines[i].push([j === 0 ? ((500 + hscale(res.length) / 2) - (cumul + (hscale(res.length)))) : ((500 + hscale(res.length) / 2)) + (cumul), 1, k, j + 1]);
                         cumul += 4
@@ -350,33 +349,27 @@
             }
         }
 
-        console.log(head);
         let fakeid = 0;
         for (let l = 0; l < (lines.length) * 2; l++) { //lines.length * 2
 
             let jind = (l < lines.length ? 0 : 1);
             let dat = [];
-            let lind = l
-            if (jind == 0) {
-                console.log(l);
+            let lind = l;
+            if (jind === 0) {
                 dat.push(head[jind][l]);
             } else {
-                console.log('asasa');
-                console.log((l - (lines.length)));
                 dat.push(head[jind][l - (lines.length)])
                 lind = l - (lines.length)
             }
             // console.log(lines);
             for (let i = 0; i < lines.length; i++) {
                 // console.log(lines[i]);
-                if (jind == 0) {
-                    dat = dat.concat(lines[i].filter(d => (d[2] == l && d[3] == 1)))
+                if (jind === 0) {
+                    dat = dat.concat(lines[i].filter(d => (d[2] === l && d[3] === 1)))
                 } else {
-                    dat = dat.concat(lines[i].filter(d => (d[2] == (l - (lines.length)) && d[3] == 2)))
+                    dat = dat.concat(lines[i].filter(d => (d[2] === (l - (lines.length)) && d[3] === 2)))
                 }
             }
-
-            console.log(dat);
 
             let line = d3.line()
                 .x(function (d, i) {
