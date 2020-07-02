@@ -62,11 +62,11 @@
     </div>
 </div>
 <script>
-    let data
+    let data;
 
-    // const url = "https://raw.githubusercontent.com/jdfekete/reorder.js/master/examples/saclay/aviz2.json";
+    const url = "https://raw.githubusercontent.com/jdfekete/reorder.js/master/examples/saclay/aviz2.json";
 
-    const url = "https://bost.ocks.org/mike/miserables/miserables.json";
+    // const url = "https://bost.ocks.org/mike/miserables/miserables.json";
 
     async function getData() {
         data = await d3.json(url).then(d => {
@@ -82,23 +82,24 @@
         });
     }
 
-    getData().then(doit);
+    // getData().then(doit);
 
     // getDataCsv('notes.csv').then(doit2);
 
-    // doit3();
+    doit3();
 
     function doit() {
         displayMatrix(network2matrix(data), d3.select("#main"), 1200, 1200, true, true, true)
     }
 
     function doit3() {
-        displayMatrix(blockDiag(50, 50, 10), d3.select("#main"), 1200, 1200, true, true, true)
+        // displayMatrix(blockDiag(5, 5, 10), d3.select("#main"), 1200, 1200, false,false, true)
+        displayMatrix(randomDots(50, 50,0.8,10), d3.select("#main"), 1200, 1200, true,false, true)
     }
 
 
     function doit2() {
-        displayTable(table2matrix(data, Object.keys(data[0]).slice(1)), d3.select("#main"), 1200, 1200, false, false)
+        displayTable(csv2table(data, Object.keys(data[0]).slice(1)), d3.select("#main"), 1200, 1200, true, true)
     }
 
     //

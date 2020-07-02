@@ -9,6 +9,22 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+
+function randomDots(n, k, thresh, max) {
+    let matrix = initM(n, k);
+
+
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < k; j++) {
+
+            if (Math.random() > thresh) {
+                matrix[i][j] = getRandomInt(1, max)
+            }
+        }
+    }
+    return matrix
+}
+
 function blockDiag(n, k, max) {
 
     let matrix = initM(n, k);
@@ -31,6 +47,7 @@ function blockDiag(n, k, max) {
         count += indx;
         indx += 1
     }
+    console.log(matrix);
     return matrix
 }
 
@@ -53,7 +70,32 @@ function network2matrix(data) {
 }
 
 
-function table2matrix(data, columns) {
+function transpose(array) {
+    return array[0].map((_, colIndex) => array.map(row => row[colIndex]));
+
+}
+
+
+function rotateClockwise(a, u) {
+
+    var n = a.length;
+
+    for (let w = 0; w < u; w++) {
+        for (var i = 0; i < n / 2; i++) {
+            for (var j = i; j < n - i - 1; j++) {
+                var tmp = a[i][j];
+                a[i][j] = a[n - j - 1][i];
+                a[n - j - 1][i] = a[n - i - 1][n - j - 1];
+                a[n - i - 1][n - j - 1] = a[j][n - i - 1];
+                a[j][n - i - 1] = tmp;
+            }
+        }
+    }
+    return a;
+
+}
+
+function csv2table(data, columns) {
 
     let matrix = d3.range(data.length).map(d => d3.range(columns.length).map(d => null))
     for (let i = 0; i < data.length; i++) {
@@ -62,7 +104,19 @@ function table2matrix(data, columns) {
 
         }
     }
+    // console.log(matrix);
+    return matrix
+}
 
-    console.log(matrix);
+
+function csv2matrix(data, columns) {
+    let matrix = d3.range(data.length).map(d => d3.range(columns.length).map(d => null))
+    for (let i = 0; i < data.length; i++) {
+        for (let j = 0; j < columns.length; j++) {
+            matrix[i][j] = parseInt(data[i][columns[j]])
+
+        }
+    }
+    // console.log(matrix);
     return matrix
 }
