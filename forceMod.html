@@ -77,11 +77,12 @@
                     <option value="left">Left</option>
                     <option value="top">Top</option>
                 </select>
+                <input type="range" >
             </div>
 
             <div>
                 <p id="comp" style="display: inline-block">Compression XX%</p>
-                <p style="display: inline-block">Sparse XX%</p>
+                <p id="sparse" style="display: inline-block">Sparse XX%</p>
                 <p id="dev" style="display: inline-block">Deviation XX</p>
             </div>
         </div>
@@ -114,6 +115,7 @@
 
         console.log(val);
         $("#fileUrl").css("display", 'none');
+
         switch (val) {
 
             case 0:
@@ -182,12 +184,22 @@
 
     function doit2() {
 
+
+        let lines = ($("#line").is(":checked"))
+        // console.log(lines);
+        let morph = ($("#morph").is(":checked"))
+        // console.log(morph);
+
+        let direction = $("#orr").val()
+
         let linem = data.map(d => d.name);
         let mat = csv2matrix(data, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1));
 
         // displayMatrix(mat, d3.select("#main"), 900, 900, true, false, true, linem, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1))
         // displayMatrix(mat, d3.select("#main2"), 900, 900, false, false, false, linem, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1))
-        draw(mat, d3.select("#main"), "left")
+
+        // console.log('bobobob');
+        draw(mat, d3.select("#main"), lines, morph, direction)
     }
 
     function doit() {

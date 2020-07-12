@@ -31,14 +31,16 @@ function getAreaH(pend, height, padding, ref) {
     // return acc
 }
 
+
 function isOdd(n) {
     return Math.abs(n % 2) === 1;
 }
 
 
-function applyStats(pend, height, padding, ref, avg) {
+function applyStats(pend, height, padding, ref, avg, sparce) {
 
 
-    $("#comp").html("Compression " + (Math.round(getAreaH(pend, height, padding, ref)*100)) + "%")
-    $("#dev").html("Deviation " + Math.round(avg*100)/100)
+    $("#comp").html("Compression " + (Math.round(getAreaH(pend, height, padding, ref) * 100)) + "%");
+    $("#dev").html("Deviation " + Math.round(avg * 100) / 100);
+    $("#sparse").html("Sparse " + (Math.round(sparce * 100)) + "%")
 }

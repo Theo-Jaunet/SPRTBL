@@ -17,11 +17,17 @@ function draw(matrix, svg, lineBool, morphBool, direction) {
 
     let tlinks = [];
     let trec = [];
+    let sparseacc = 0;
     for (let i = 0; i < matrix.length; i++) {
 
         // let g = ;
         for (let j = 0; j < matrix[0].length; j++) {
             let wid
+
+            if (matrix[i][j] === 0) {
+                sparseacc++
+            }
+
             if (!morphBool) {
                 wid = (matrix[i][j] == 0 ? 2 : rectSize)
             } else {
@@ -133,7 +139,7 @@ function draw(matrix, svg, lineBool, morphBool, direction) {
             }
 
         }
-        applyStats(rects2line(rects.data(), matrix[0].length - 1, (rectSize + padding / 2)), rectSize, padding, matrix[0].length, sum / matrix[0].length)
+        applyStats(rects2line(rects.data(), matrix[0].length - 1, (rectSize + padding / 2)), rectSize, padding, matrix[0].length, sum / matrix[0].length, sparseacc / (matrix.length * matrix[0].length))
 
     }, 3500);
 }
@@ -218,17 +224,18 @@ function tickedLeft() {
 
 
 function makeForce(direction, trec, tlinks) {
-    let simulation = d3.forceSimulation(trec).alpha(0.08);
+    let simulation = d3.forceSimulation(trec).alpha(0.38);
     simulation.stop();
     switch (direction) {
         case "left":
-            simulation.force("link", d3.forceLink(tlinks).id(d => d.id).strength(1).distance(0.5))
+            simulation
+                // .force("link", d3.forceLink(tlinks).id(d => d.id).strength(1).distance(0.5))
                 .force('collision', d3.forceCollide().iterations(4).radius(function (d) {
                     // console.log(d.width);
                     return d.width / 2
                 }).strength(0.2))
                 .force("charge", d3.forceManyBody().distanceMin(d => 5).distanceMax(5).strength(-50))
-                .force("x", d3.forceX(0).strength(5))
+                .force("x", d3.forceX(0).strength(0.2))
                 .on("tick", tickedLeft);
             break;
         case "top":
@@ -261,7 +268,7 @@ function drawTable(matrix, svg, lineBool, direction) {
     // const hscale = d3.scaleSqrt().domain([0, max]).range([2, rectSize]);
 
     // console.log(matrix);
-
+    let sparseacc =0;
     let tlinks = [];
     let trec = [];
     for (let i = 0; i < matrix.length; i++) {
@@ -271,6 +278,8 @@ function drawTable(matrix, svg, lineBool, direction) {
             let wid = 1;
             if (/^\d*\.?\d+$/.test(matrix[i][j])) {
                 wid = 7.5 * matrix[i][j].length
+            }else {
+                sparseacc++
             }
             trec.push({
                 x: ((rectSize + padding) * j) + wid,
@@ -309,7 +318,7 @@ function drawTable(matrix, svg, lineBool, direction) {
         .data(trec)
         .enter()
         .append("text")
-        .attr("y",10)
+        .attr("y", 10)
         // .attr("width", rectSize)
         // .attr("height", rectSize)
         .attr("col", d => d.col)
@@ -380,7 +389,7 @@ function drawTable(matrix, svg, lineBool, direction) {
             }
 
         }
-        applyStats(rects2line(rects.data(), matrix[0].length - 1, (rectSize + padding / 2)), rectSize, padding, matrix[0].length, sum / matrix[0].length)
+        applyStats(rects2line(rects.data(), matrix[0].length - 1, (rectSize + padding / 2)), rectSize, padding, matrix[0].length, sum / matrix[0].length, sparseacc / (matrix.length * matrix[0].length))
 
     }, 3500);
 }
