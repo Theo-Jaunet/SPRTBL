@@ -1,8 +1,10 @@
 let rects;
 let graphLayout;
+let compfact;
 
-function draw(matrix, svg, lineBool, morphBool, direction) {
+function draw(matrix, svg, lineBool, morphBool, direction, compress) {
 
+    compfact = 1-(compress / 5.8);
     svg.selectAll("*").remove();
     const padding = 4;
     const rectSize = (900 - (padding * matrix.length)) / matrix.length
@@ -79,7 +81,7 @@ function draw(matrix, svg, lineBool, morphBool, direction) {
         .attr("transform", d => "translate(" + (d.x - d.width) + "," + (d.y - d.width) + ")");
 
 
-    graphLayout = makeForce(direction, trec, tlinks);
+    graphLayout = makeForce(direction, trec, tlinks, compress);
 
 
     /*      d3.forceSimulation(trec).alpha(0.08)
@@ -207,7 +209,7 @@ function tickedLeft() {
 
             if (nodePos.x < prev.x + prev.width) {
 
-                nodePos.x = nodePos.x + Math.abs(nodePos.x - (prev.x + prev.width)) + 3.5
+                nodePos.x = nodePos.x + Math.abs(nodePos.x - (prev.x + prev.width)) + 6 * compfact
 
             } else if ((prev.x + prev.width) - nodePos.x > 5) {
                 // nodePos.x = nodePos.x -5
@@ -223,9 +225,10 @@ function tickedLeft() {
 }
 
 
-function makeForce(direction, trec, tlinks) {
+function makeForce(direction, trec, tlinks, compress) {
     let simulation = d3.forceSimulation(trec).alpha(0.38);
     simulation.stop();
+    console.log("dasdas" + compress);
     switch (direction) {
         case "left":
             simulation
@@ -235,7 +238,7 @@ function makeForce(direction, trec, tlinks) {
                     return d.width / 2
                 }).strength(0.2))
                 .force("charge", d3.forceManyBody().distanceMin(d => 5).distanceMax(5).strength(-50))
-                .force("x", d3.forceX(0).strength(0.2))
+                .force("x", d3.forceX(0).strength(compress))
                 .on("tick", tickedLeft);
             break;
         case "top":
@@ -255,7 +258,7 @@ function makeForce(direction, trec, tlinks) {
 }
 
 
-function drawTable(matrix, svg, lineBool, direction) {
+function drawTable(matrix, svg, lineBool, direction, compress) {
 
     svg.selectAll("*").remove();
     const padding = 0.1;
@@ -268,7 +271,7 @@ function drawTable(matrix, svg, lineBool, direction) {
     // const hscale = d3.scaleSqrt().domain([0, max]).range([2, rectSize]);
 
     // console.log(matrix);
-    let sparseacc =0;
+    let sparseacc = 0;
     let tlinks = [];
     let trec = [];
     for (let i = 0; i < matrix.length; i++) {
@@ -278,7 +281,7 @@ function drawTable(matrix, svg, lineBool, direction) {
             let wid = 1;
             if (/^\d*\.?\d+$/.test(matrix[i][j])) {
                 wid = 7.5 * matrix[i][j].length
-            }else {
+            } else {
                 sparseacc++
             }
             trec.push({
@@ -329,7 +332,7 @@ function drawTable(matrix, svg, lineBool, direction) {
         .attr("transform", d => "translate(" + (d.x) + "," + (d.y) + ")");
 
 
-    graphLayout = makeForce(direction, trec, tlinks);
+    graphLayout = makeForce(direction, trec, tlinks, compress);
 
 
     /*      d3.forceSimulation(trec).alpha(0.08)

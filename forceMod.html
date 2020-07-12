@@ -50,18 +50,25 @@
 <!-- Primary Page Layout
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 <div class="container" style="margin-bottom: 5%; max-width: unset;width: 98%">
+
     <div class="row">
-        <div class="twelve column" style="margin-top: 10%">
+        <div class="twelve column" style="margin-top: 5%;text-align: center">
+            <h4>SPRTBL </h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="twelve column" style="margin-top: 1%;text-align: center">
             <div>
                 <select id="preset">
                     <option value="0">Les Miserables</option>
                     <option value="1">Simpson</option>
                     <option value="2">Grades</option>
-                    <option value="3">Pattern</option>
-                    <option value="4">Custom</option>
+                    <option value="3">Block Diagonal</option>
+                    <option value="4">Random Noise</option>
+                    <option value="5">Custom</option>
                 </select>
                 <input id="fileUrl" style="display: none" type="text" placeholder="CustomFileURL">
-                <button class="button-primary"> Go</button>
+                <button class="button-primary" onclick="doTheThing()"> Go</button>
             </div>
 
             <div>
@@ -73,11 +80,17 @@
                     <input id="morph" type="checkbox">
                     <span class="label-body">Morph</span>
                 </label>
-                <select id="orr" style="display: inline-block">
-                    <option value="left">Left</option>
-                    <option value="top">Top</option>
-                </select>
-                <input type="range" >
+                <label>
+                    <span class="label-body">Direction</span>
+                    <select id="orr" style="display: inline-block">
+                        <option value="left">Left</option>
+                        <option value="top">Top</option>
+                    </select>
+                </label>
+                <label>
+                    <span class="label-body">Compression Factor</span>
+                    <input type="range" id="compression" min="0.2" max="6" step="0.2"/>
+                </label>
             </div>
 
             <div>
@@ -90,7 +103,7 @@
     </div>
 
     <div class="row">
-        <div class="twelve column" style="margin-top: 10%;position: relative">
+        <div class="twelve column" style="margin-top: 2%;position: relative;text-align: center">
             <div style="display: inline-block">
                 <svg id="main" width="900" height="900" style="border: #555555 solid 1px;">
 
@@ -108,10 +121,9 @@
 </div>
 <script>
 
+    function doTheThing() {
 
-    $("#preset").on("input", function () {
-
-        let val = parseInt($(this).val());
+        let val = parseInt($("#preset").val());
 
         console.log(val);
         $("#fileUrl").css("display", 'none');
@@ -136,14 +148,28 @@
                 break;
 
             case 3:
+                var ops = getOptions();
+                // let mat = randomDots(50, 50, 0.8, 10);
+                var mat = rotateClockwise(blockDiag(50, 50, 10), 0);
+                draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3]);
+                break;
+            case 4:
+                var ops = getOptions();
+                var mat = randomDots(50, 50, 0.8, 10);
+                draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3]);
                 break;
 
-            case 4:
+
+            case 5:
                 $("#fileUrl").css("display", 'inline-block');
                 break;
         }
 
-    });
+
+    }
+
+
+    $("#preset").on("input", doTheThing);
 
     let data;
 
@@ -184,46 +210,32 @@
 
     function doit2() {
 
-
-        let lines = ($("#line").is(":checked"))
-        // console.log(lines);
-        let morph = ($("#morph").is(":checked"))
-        // console.log(morph);
-
-        let direction = $("#orr").val()
+        const ops = getOptions();
 
         let linem = data.map(d => d.name);
         let mat = csv2matrix(data, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1));
 
-        // displayMatrix(mat, d3.select("#main"), 900, 900, true, false, true, linem, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1))
-        // displayMatrix(mat, d3.select("#main2"), 900, 900, false, false, false, linem, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1))
 
-        // console.log('bobobob');
-        draw(mat, d3.select("#main"), lines, morph, direction)
+        // reOrderMatCol(mat);
+        draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3])
     }
 
     function doit() {
         // displayMatrix(network2matrix(data), d3.select("#main2"), 900, 900, true, false, true)
 
+        const ops = getOptions();
 
-        let lines = ($("#line").is(":checked"))
-        console.log(lines);
-        let morph = ($("#morph").is(":checked"))
-        console.log(morph);
-
-        let direction = $("#orr").val()
-
-
-        draw(network2matrix(data), d3.select("#main"), lines, morph, direction)
+        draw(network2matrix(data), d3.select("#main"), ops[0], ops[1], ops[2], ops[3])
     }
 
 
     function doit3() {
         // displayMatrix(blockDiag(5, 5, 10), d3.select("#main"), 1200, 1200, false,false, true)
 
+        const ops = getOptions();
         // let mat = randomDots(50, 50, 0.8, 10);
-        let mat = rotateClockwise(blockDiag(50, 50, 10), 0)
-        draw(mat, d3.select("#main"), "left")
+        let mat = rotateClockwise(blockDiag(50, 50, 10), 0);
+        draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3]);
         // draw(reOrderMat(mat), d3.select("#main2"))
         // displayMatrix(mat, d3.select("#main"), 900, 900, true, false, true, d3.range(mat[0].length));
         // displayMatrix(mat, d3.select("#main2"), 900, 900, false, false, false, d3.range(mat[0].length))
@@ -233,18 +245,21 @@
     function doit4() {
         let mat = csv2table(data, Object.keys(data[0]).slice(1));
 
+        const ops = getOptions();
 
+        console.log(ops);
+        drawTable(mat, d3.select("#main"), ops[0], ops[2], ops[3])
+    }
+
+    function getOptions() {
         let lines = ($("#line").is(":checked"))
-        console.log(lines);
         let morph = ($("#morph").is(":checked"))
-        console.log(morph);
 
-        let direction = $("#orr").val();
+        let direction = $("#orr").val()
 
-        console.log(mat);
+        let compress = parseFloat($("#compression").val());
 
-
-        drawTable(mat, d3.select("#main"), lines, direction)
+        return [lines, morph, direction, compress]
 
     }
 

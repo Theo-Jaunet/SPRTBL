@@ -159,14 +159,11 @@
 
 
     function reOrderMat(mat) {
-
         return mat.slice().sort((a, b) => {
             let vala = a.reduce((a, b) => a + b);
             let valb = b.reduce((a, b) => a + b);
             return ((vala) > (valb)) ? -1 : (((valb) > (vala)) ? 1 : 0)
         });
-
-
     }
 
     function reOrderMatCol(mat) {
@@ -248,7 +245,6 @@
                 }
             }
         }
-
 
         rects = svg.append("g")
             .selectAll("rect")
