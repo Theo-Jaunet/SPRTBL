@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- Basic Page Needs
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8">
+    <title>Projection</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <!-- Mobile Specific Metas
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- FONT
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
+    <!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="assets/css/normalize.css">
+    <link rel="stylesheet" href="assets/css/skeleton.css">
+
+    <!-- Favicon
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="/assets/images/favicon/favicon.ico">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+            integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="jDBSCAN.js"></script>
+    <script type="text/javascript" src="matrixGenerator.js"></script>
+    <script type="text/javascript" src="gamble.js"></script>
+
+    <style>
+
+    </style>
+
+</head>
+<body>
+
+<!-- Primary Page Layout
+–––––––––––––––––––––––––––––––––––––––––––––––––– -->
+<div class="container" style="margin-bottom: 5%; max-width: unset;width: 98%">
+    <div class="row">
+        <div class="twelve column" style="margin-top: 10%">
+            <!--            <h4 style="text-align: center"> Hey, this a custom template with Skeleton</h4>-->
+
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="twelve column" style="margin-top: 10%;position: relative">
+            <div style="display: inline-block">
+                <button onclick="doStuff()">
+                    Transition
+                </button>
+                <svg id="main" width="900" height="900" style="border: #555555 solid 1px;">
+
+                </svg>
+
+            </div>
+            <div style="display: inline-block;position: absolute">
+                <svg id="main2" width="900" height="900" style="border: #555555 solid 1px;">
+
+                </svg>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script>
+    let data;
+    let rects;
+    var graphLayout
+
+    // const url = "https://raw.githubusercontent.com/jdfekete/reorder.js/master/examples/saclay/aviz2.json";
+
+    const url = "https://bost.ocks.org/mike/miserables/miserables.json";
+
+
+    $("body").on('mouseover', "rect", function (e) {
+
+        let tline = $(this).attr("line");
+        let tcol = $(this).attr("col");
+        const dur = 50;
+        d3.selectAll("rect").transition().duration(dur).style("opacity", 0.3);
+        d3.selectAll("text").transition().duration(dur).style("opacity", 0.3);
+        d3.selectAll('path').transition().duration(dur).style("opacity", 0.3);
+        d3.selectAll('rect[col="' + tcol + '"]').transition().duration(dur).style("opacity", 1);
+        d3.selectAll('text[col="' + tcol + '"]').transition().duration(dur).style("opacity", 1);
+        d3.selectAll('rect[line="' + tline + '"]').transition().duration(dur).style("opacity", 1);
+        d3.selectAll('text[line="' + tline + '"]').transition().duration(dur).style("opacity", 1);
+        d3.selectAll('path[col="' + tcol + '"]').transition().duration(dur).style("opacity", 1).attr('stroke-width', 2)
+
+    });
+
+    $("body").on('mouseout', "rect", function (e) {
+        const dur = 50;
+        d3.selectAll("rect").transition().duration(dur).style("opacity", 1);
+        d3.selectAll('path').transition().duration(dur).style("opacity", 1).attr('stroke-width', 1);
+        d3.selectAll("text").transition().duration(dur).style("opacity", 1);
+
+    });
+
+    async function getData() {
+        data = await d3.json(url).then(d => {
+            return d
+        });
+
+    }
+
+    async function getDataCsv(url) {
+        data = await d3.csv(url).then(d => {
+            return d
+        });
+    }
+
+    // getData().then(doit);
+
+    // doit3();
+
+    getDataCsv('simpsons.csv').then(doit2);
+
+
+    function doit2() {
+
+        let linem = data.map(d => d.name);
+
+        let mat = csv2matrix(data, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1));
+
+        draw(mat, d3.select("#main"))
+
+
+    }
+
+    function doit() {
+        // displayMatrix(network2matrix(data), d3.select("#main2"), 900, 900, true, false, true)
+        draw(network2matrix(data), d3.select("#main"))
+    }
+
+
+    function doit3() {
+        // displayMatrix(blockDiag(5, 5, 10), d3.select("#main"), 1200, 1200, false,false, true)
+
+        // let mat = randomDots(50, 50, 0.8, 10);
+        let mat = rotateClockwise(blockDiag(50, 50, 10), 0)
+        draw(mat, d3.select("#main"))
+        // displayMatrix(mat, d3.select("#main"), 900, 900, true, false, true, d3.range(mat[0].length));
+        // displayMatrix(mat, d3.select("#main2"), 900, 900, false, false, false, d3.range(mat[0].length))
+    }
+
+
+    // getDataCsv('notes.csv').then(doit2);
+    // getDataCsv('simpsons.csv').then(doit2);
+    //
+    // function doit2() {
+    //
+    //     let linem = data.map(d => d.name);
+    //     let mat = csv2matrix(data, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1));
+    //
+    //
+    //     // displayMatrix(mat, d3.select("#main"), 900, 900, true, false, true, linem, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1))
+    //     displayMatrix(mat, d3.select("#main2"), 900, 900, false, false, false, linem, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1))
+    //     draw(mat, d3.select("#main"))
+    // }
+
+    function rects2line(data, id, margin) {
+        return data.filter(d => d.col === id).map(function (item) {
+            let item2 = JSON.parse(JSON.stringify(item));
+            item2.y = item.y + item.width
+            return [item, item2];
+        }).reduce(function (a, b) {
+            return a.concat(b)
+        });
+
+
+    }
+
+    function draw(matrix, svg) {
+        const padding = 4;
+        const rectSize = (900 - (padding * matrix.length)) / matrix.length
+
+        const max = getMax(matrix);
+        let color = d3.scaleLinear().domain([0, max]).range(['#fffacd', '#cf582f']).interpolate(d3.interpolateHcl);
+        let lanes = d3.range(matrix.length).map(d => []);
+
+        // console.log(matrix);
+
+        let tlinks = [];
+        let trec = [];
+        for (let i = 0; i < matrix.length; i++) {
+
+            // let g = ;
+            for (let j = 0; j < matrix[0].length; j++) {
+
+                let wid = (matrix[i][j] === 0 ? 7 : rectSize);
+                trec.push({
+                    x: ((rectSize + padding) * j) + wid,
+                    y: ((rectSize + padding) * i) + wid,
+                    line: i,
+                    col: j,
+                    id: j + "-" + i,
+                    val: matrix[i][j],
+                    ory: ((rectSize + padding) * i),
+                    orx: ((rectSize + padding) * j),
+                    width: wid
+                });
+
+                // if (j > 0) {
+                //     tlinks.push({
+                //         source: j + "-" + i,
+                //         target: (j - 1) + "-" + i,
+                //         val: '1'
+                //     })
+                // }
+                if (i > 0) {
+
+                    tlinks.push({
+                        source: j + "-" + (i - 1),
+                        target: j + "-" + (i - 1),
+                        val: '1'
+                    })
+                }
+            }
+        }
+
+
+        rects = svg.append("g")
+            .selectAll("rect")
+            .data(trec)
+            .enter()
+            .append("rect")
+            .attr("width", rectSize)
+            .attr("height", rectSize)
+            .attr("col", d => d.col)
+            .attr("line", d => d.line)
+            .attr("fill", d => (d.val === 0 ? "#d3d3d3" : color(d.val)))
+            // .call(force.drag)
+            .attr("transform", d => "translate(" + (d.x - d.width) + "," + (d.y - d.width) + ")");
+
+        //
+        // console.log();
+        //
+        // console.log(rects);
+        // console.log(trec);
+
+        graphLayout = d3.forceSimulation(trec).alpha(0.08)
+
+            .force("link", d3.forceLink(tlinks).id(d => d.id).strength(50).distance(10))
+            .force('collision', d3.forceCollide().iterations(4).radius(function (d) {
+                // console.log(d.width);
+                return 20
+            }).strength(0.01))
+            // .force("charge", d3.forceManyBody().distanceMin(d => 30).strength(-50))
+            .force("x", d3.forceX(0).strength(0.2))
+            .force("y", d3.forceY(0).strength(0.2))
+            // .force("center", d3.forceCenter([450, 450]))
+            .on("tick", ticked);
+        graphLayout.stop();
+
+        setTimeout(function () {
+            graphLayout.restart();
+            console.log("lala");
+        }, 150)
+
+
+        setTimeout(function () {
+            graphLayout.stop();
+            console.log("lala");
+            rects.transition().duration(1850).attr("height", d => (d.width)).attr("width", d => (d.width))
+            /*                .attr("transform", function (d, i) {
+                                    return "translate(" + (d.x) + "," + d.y + ")";
+                                }
+                            )*/
+            // .on("end", animLines);
+            let line = d3.line()
+                .x(function (d) {
+                    return d.x + (d.width / 2);
+                })
+                .y(function (d) {
+                    return d.y
+                })
+                .curve(d3.curveLinear);
+
+            for (let i = 0; i < matrix[0].length; i++) {
+
+
+                let tpath = svg.append("path")
+                    .data([rects2line(rects.data(), i, (rectSize + padding / 2))])
+                    .attr("d", line)
+                    .attr('stroke-width', 1)
+                    .attr('stroke', '#5b5b5b')
+                    .attr('fill', 'none')
+                    .attr("col", i)
+                    .attr('opacity', 0)
+                    .transition()
+                    .duration(2900)
+                    .attr('opacity', 1)
+
+                //
+                // let totalLength = tpath.node().getTotalLength();
+                //
+                // tpath.attr("stroke-dasharray", totalLength + " " + totalLength)
+                //     .attr("stroke-dashoffset", totalLength)
+
+
+            }
+
+        }, 4500);
+
+        function ticked() {
+
+
+            rects.each(function (nodePos, i, a) {
+
+                    // nodePos.x = nodePos.orx;
+                    if (nodePos.x < 5)
+                        nodePos.x = 5
+                    /*
+                                    if (nodePos.x > 500)
+                                        nodePos.x = 500*/
+
+                    if (nodePos.line === 0) {
+                        nodePos.y = 5
+                    }
+                    if (nodePos.col === 0) {
+                        nodePos.x = 5
+                    }
+                    if (nodePos.line > 0) {
+
+
+                        let prev = rects.data().filter(d => d.line === nodePos.line - 1 && d.col === nodePos.col)[0];
+
+
+                        if (nodePos.y < prev.y + prev.width) {
+
+                            nodePos.y = nodePos.y + Math.abs(nodePos.y - (prev.y + prev.width)) + 10
+
+                        }
+                    }
+                    if (nodePos.col > 0) {
+
+                        //TODO: Find overlap in closest y
+
+                        let prev = rects.data().filter(d => d.col === nodePos.col - 1 && (d.y + 15 >= nodePos.y && d.y - 15 <= nodePos.y + nodePos.width) && ((d.x + 15 >= nodePos.x && d.x - 15 <= nodePos.x + nodePos.width)));
+
+                        if (prev.length > 0) {
+                            console.log(prev);
+                            // nodePos.x = nodePos.x + 20
+
+                        }
+                    }
+
+                }
+            );
+
+            rects.attr("transform", function (d, i) {
+                return "translate(" + (d.x) + "," + d.y + ")";
+            });
+        }
+
+
+    }
+
+    function animLines() {
+
+        d3.selectAll("path").transition()
+            .duration(1500)
+            // .attr("stroke-dashoffset", 0)
+            .attr('opacity', 1)
+
+    }
+
+</script>
+</body>
+
+</html>

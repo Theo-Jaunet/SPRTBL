@@ -57,7 +57,7 @@ function blockDiag(n, k, max) {
 * data.links
 * */
 function network2matrix(data) {
-    console.log(data);
+    // console.log(data);
 
     let matrix = d3.range(data.nodes.length).map(d => d3.range(data.nodes.length).map(d => 0))
 
@@ -76,8 +76,8 @@ function transpose(array) {
 }
 
 
-function rotateClockwise(a, u) {
-
+function rotateClockwise(arr, u) {
+    a = arr.slice();
     var n = a.length;
 
     for (let w = 0; w < u; w++) {

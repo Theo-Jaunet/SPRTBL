@@ -33,6 +33,10 @@
 
     <style>
 
+        text {
+
+            font-family: monospace;
+        }
     </style>
 
 </head>
@@ -113,8 +117,8 @@
 
     // getData().then(doit);
 
-    // getDataCsv('notes.csv').then(doit2);
-    getDataCsv('simpsons.csv').then(doit2);
+    getDataCsv('notes.csv').then(doit2);
+    // getDataCsv('simpsons.csv').then(doit2);
 
     // doit3();
 
@@ -130,7 +134,7 @@
         // displayMatrix(blockDiag(5, 5, 10), d3.select("#main"), 1200, 1200, false,false, true)
 
         // let mat = randomDots(50, 50, 0.8, 10);
-        let mat = rotateClockwise(blockDiag(5, 5, 10), 0)
+        let mat = rotateClockwise(blockDiag(50, 50, 10), 0);
 
         displayMatrix(mat, d3.select("#main"), 900, 900, true, false, true, d3.range(mat[0].length));
         displayMatrix(mat, d3.select("#main2"), 900, 900, false, false, false, d3.range(mat[0].length))
@@ -140,18 +144,20 @@
     function doit2() {
 
         let linem = data.map(d => d.name);
+        /*
 
-        let mat = csv2matrix(data, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1));
+                let mat = csv2matrix(data, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1));
 
-        displayMatrix(mat, d3.select("#main"), 900, 900, true, false, true, linem, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1))
-        displayMatrix(mat, d3.select("#main2"), 900, 900, false, false, false, linem, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1))
+                displayMatrix(mat, d3.select("#main"), 900, 900, true, false, true, linem, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1))
+                displayMatrix(mat, d3.select("#main2"), 900, 900, false, false, false, linem, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1))
+        */
 
-        //
-        // let mat = csv2table(data, Object.keys(data[0]).slice(1));
-        // console.log(data);
-        // console.log(mat);
-        // displayTable(mat, d3.select("#main"), 1200, 1200, true, true,d3.range(data.length),Object.keys(data[0]).slice(1))
-        // displayTable(mat, d3.select("#main2"), 1200, 1200, false, true,d3.range(data.length),Object.keys(data[0]).slice(1))
+
+        let mat = csv2table(data, Object.keys(data[0]).slice(1));
+        console.log(data);
+        console.log(mat);
+        displayTable(mat, d3.select("#main"), 1200, 1200, true, true, d3.range(data.length), Object.keys(data[0]).slice(1))
+        displayTable(mat, d3.select("#main2"), 1200, 1200, false, true, d3.range(data.length), Object.keys(data[0]).slice(1))
 
 
     }

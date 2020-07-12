@@ -21,6 +21,8 @@ function displayMatrix(matrix, svg, svgWidth, svgHeight, gap = false, morph = fa
     let lanes = d3.range(matrix.length).map(d => []);
     lanes.push([]);
 
+
+    console.log(rectSize);
     for (let i = 0; i < matrix.length; i++) {
         let cumul = marginw + padding;
 
@@ -130,14 +132,18 @@ function displayTable(matrix, svg, svgWidth, svgHeight, gap = false, lines = tru
             let wid = 1;
             if (matrix[i][j] !== "") {
 
-                let txt = svg.append("text")
-                    .attr("x", cumul)
-                    .attr("y", marginh + 10 + padding + (15 + (padding)) * i)
+                if (/^\d*\.?\d+$/.test(matrix[i][j])) {
 
-                    .text(matrix[i][j]);
+                    let txt = svg.append("text")
+                        .attr("x", cumul)
+                        .attr("y", marginh + 10 + padding + (15 + (padding)) * i)
+                        .text(Math.round(matrix[i][j]));
 
-                wid = txt._groups[0][0].getComputedTextLength()
+                    wid = txt._groups[0][0].getComputedTextLength()
 
+                } else {
+                    console.log(matrix[i][j]);
+                }
             }
 
             if (i === 0) {
@@ -156,7 +162,6 @@ function displayTable(matrix, svg, svgWidth, svgHeight, gap = false, lines = tru
             }
 
             if (lines) {
-
                 let temp = 0;
                 if (gap && matrix[i][j] !== "") {
                     temp = wid / 2
@@ -167,9 +172,10 @@ function displayTable(matrix, svg, svgWidth, svgHeight, gap = false, lines = tru
             if (gap) {
                 cumul += (matrix[i][j] === 0 ? 1 : wid)
             } else {
-                cumul += rectSize + 10
+                cumul += rectSize
             }
-            cumul += padding * 2
+            // cumul += padding
+            cumul += 1
         }
     }
     if (lines) {
@@ -191,7 +197,7 @@ function drawLines(lanes, svg, height) {
         // for (let i = 0; i < 1; i++) {
         let dat = getCol(lanes, i);
 
-        console.log(dat);
+        // console.log(dat);
 
         let line = d3.line()
             .x(function (d) {
@@ -219,15 +225,3 @@ function drawLines(lanes, svg, height) {
 
 }
 
-d3.selection.prototype.moveToBack = function () {
-    return this.each(function () {
-        var firstChild = this.parentNode.firstChild;
-        if (firstChild) {
-            this.parentNode.insertBefore(this, firstChild);
-        }
-    });
-};
-
-function getMax(a) {
-    return Math.max(...a.map(e => Array.isArray(e) ? getMax(e) : e));
-}
