@@ -37,11 +37,10 @@ function isOdd(n) {
 }
 
 
-function applyStats(pend, height, padding, ref, avg, sparce, rows, cols) {
+function applyStats(pend, height, padding, ref, avg, sparce) {
 
 
     $("#comp").html("Compression " + (Math.round(getAreaH(pend, height, padding, ref) * 100)) + "%");
     $("#dev").html("Deviation " + Math.round(avg * 100) / 100);
-    $("#sparse").html("Sparse " + (Math.round(sparce * 100)) + "\\%")
-    $("#mess").html("(" + rows + " rows, " + cols + " cols, " + (Math.round(sparce * 100)) + "\\%" + " sparse, " + (Math.round(getAreaH(pend, height, padding, ref) * 100)) + "\\% compr., " + (Math.round(avg * 100) / 100) + " dev.)")
+    $("#sparse").html("Sparse " + (Math.round(sparce * 100)) + "%")
 }

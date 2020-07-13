@@ -4,7 +4,7 @@ let compfact;
 
 function draw(matrix, svg, lineBool, morphBool, direction, compress) {
 
-    compfact = 1 - (compress / 5.8);
+    compfact = 1-(compress / 5.8);
     svg.selectAll("*").remove();
     const padding = 4;
     const rectSize = (900 - (padding * matrix.length)) / matrix.length
@@ -99,35 +99,22 @@ function draw(matrix, svg, lineBool, morphBool, direction, compress) {
 
     setTimeout(function () {
         graphLayout.restart();
-        // console.log("lala");
+        console.log("lala");
     }, 1750);
 
 
     setTimeout(function () {
         graphLayout.stop();
-        console.log("DONE");
-        if (direction == "left") {
-            rects.transition().duration(1850).attr("width", d => d.width)
-                .attr("transform", function (d, i) {
-                        return "translate(" + (d.x) + "," + d.y + ")";
-                    }
-                )
-        } else if (direction == "top") {
-            rects.transition().duration(1850).attr("height", d => d.width)
-                .attr("transform", function (d, i) {
-                        return "translate(" + (d.x) + "," + d.y + ")";
-                    }
-                )
-        }
+        console.log("lala");
+        rects.transition().duration(1850).attr("width", d => d.width)
+            .attr("transform", function (d, i) {
+                    return "translate(" + (d.x) + "," + d.y + ")";
+                }
+            )
         // .on("end", animLines);
         let line = d3.line()
             .x(function (d) {
-                if (direction == "left") {
-                    return d.x + (d.width / 2);
-                } else (direction == "top")
-                {
-                    return d.x + rectSize / 2
-                }
+                return d.x + (d.width / 2);
             })
             .y(function (d) {
                 return d.y
@@ -139,21 +126,22 @@ function draw(matrix, svg, lineBool, morphBool, direction, compress) {
 
             sum += getCurve(rects2line(rects.data(), i, (rectSize + padding / 2)))
 
-
-            let tpath = svg.append("path")
-                .data([rects2line(rects.data(), i, (rectSize + padding / 2))])
-                .attr("d", line)
-                .attr('stroke-width', 1)
-                .attr('stroke', '#5b5b5b')
-                .attr('fill', 'none')
-                .attr("col", i)
-                .attr('opacity', 0)
-                .transition()
-                .duration(2900)
-                .attr('opacity', lineBool)
+            if (lineBool) {
+                let tpath = svg.append("path")
+                    .data([rects2line(rects.data(), i, (rectSize + padding / 2))])
+                    .attr("d", line)
+                    .attr('stroke-width', 1)
+                    .attr('stroke', '#5b5b5b')
+                    .attr('fill', 'none')
+                    .attr("col", i)
+                    .attr('opacity', 0)
+                    .transition()
+                    .duration(2900)
+                    .attr('opacity', 1)
+            }
 
         }
-        applyStats(rects2line(rects.data(), matrix[0].length - 1, (rectSize + padding / 2)), rectSize, padding, matrix[0].length, sum / matrix[0].length, sparseacc / (matrix.length * matrix[0].length), matrix.length, matrix[0].length)
+        applyStats(rects2line(rects.data(), matrix[0].length - 1, (rectSize + padding / 2)), rectSize, padding, matrix[0].length, sum / matrix[0].length, sparseacc / (matrix.length * matrix[0].length))
 
     }, 3500);
 }
@@ -240,7 +228,7 @@ function tickedLeft() {
 function makeForce(direction, trec, tlinks, compress) {
     let simulation = d3.forceSimulation(trec).alpha(0.38);
     simulation.stop();
-    // console.log("dasdas" + compress);
+    console.log("dasdas" + compress);
     switch (direction) {
         case "left":
             simulation
@@ -362,7 +350,7 @@ function drawTable(matrix, svg, lineBool, direction, compress) {
 
     setTimeout(function () {
         graphLayout.restart();
-        // console.log("lala");
+        console.log("lala");
     }, 1750);
 
 
@@ -404,7 +392,7 @@ function drawTable(matrix, svg, lineBool, direction, compress) {
             }
 
         }
-        applyStats(rects2line(rects.data(), matrix[0].length - 1, (rectSize + padding / 2)), rectSize, padding, matrix[0].length, sum / matrix[0].length, sparseacc / (matrix.length * matrix[0].length), matrix.length, matrix[0].length)
+        applyStats(rects2line(rects.data(), matrix[0].length - 1, (rectSize + padding / 2)), rectSize, padding, matrix[0].length, sum / matrix[0].length, sparseacc / (matrix.length * matrix[0].length))
 
     }, 3500);
 }

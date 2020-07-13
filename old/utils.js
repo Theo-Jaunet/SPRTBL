@@ -22,41 +22,13 @@ function reOrderMat(mat) {
 
 
 function reOrderMatCol(mat) {
-
-    let bob = purge(rotateClockwise(mat, 1))
-    let bob2 = reOrderMat(bob.slice().map(d => d))
-    let bob3 = bob2[0].map((d, i) => bob2.map(d => d[i]));
-
-    return bob3
-}
-
-
-function reOrderMatBoth(mat) {
-
-    return reOrderMat(reOrderMatCol(mat).slice().map(d => d.slice()))
+    console.log(purge(rotateClockwise(mat, 0)));
+    return rotateClockwise(reOrderMat(rotateClockwise(mat, 0)), 3)
 }
 
 
 function purge(mat) {
 
-    // mat = mat.slice().map(d => d.slice());
-    // console.log(mat);
-    return mat.filter(d => {
-        return d[0] !== undefined
-    })
-}
 
-
-function colSort(arr) {
-
-
-    for (let i = 0; i < arr[0].length; i++) {
-        for (let j = 0; j < arr.length; j++) {
-
-            arr[j]
-
-
-        }
-    }
-
+    return mat.filter( d=>{return  d[0] === undefined})
 }

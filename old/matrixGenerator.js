@@ -77,7 +77,7 @@ function transpose(array) {
 
 
 function rotateClockwise(arr, u) {
-    a = arr.slice().map(d=> d.slice());
+    a = arr.slice();
     var n = a.length;
 
     for (let w = 0; w < u; w++) {

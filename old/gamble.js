@@ -25,13 +25,12 @@ function displayMatrix(matrix, svg, svgWidth, svgHeight, gap = false, morph = fa
     console.log(rectSize);
     for (let i = 0; i < matrix.length; i++) {
         let cumul = marginw + padding;
-        let cumul2 = marginw + padding;
 
         if (labels.length > 0) {
             svg.append("text")
                 .attr('x', 120)
                 .attr("text-anchor", "end")
-                .attr("y", marginh + padding + (rectSize + padding) * ((i < 4 ? i : (i < 18 ? i - 0.3 : (i > 19 ? i - 2: (i ===19?i-1.5: i - 0.75))))) + rectSize / 2)
+                .attr("y", marginh + padding + (rectSize + padding) * i + rectSize / 2)
                 .style("font-size", "9pt")
                 .attr('line', i)
                 .text(labels[i]);
@@ -55,9 +54,9 @@ function displayMatrix(matrix, svg, svgWidth, svgHeight, gap = false, morph = fa
 
             svg.append("rect")
                 .attr("x", cumul)
-                .attr("y", marginh + padding + (rectSize + padding) * (i < 4 ? i : (i < 18 ? i - 0.75 : (i > 19 ? i - 2 : i - .5))))
+                .attr("y", marginh + padding + (rectSize + padding) * i)
                 .attr("width", (morph ? hscale(matrix[i][j]) : (gap && matrix[i][j] === 0 ? 1 : rectSize)))
-                .attr("height", (morph ? hscale(matrix[i][j]) : (gap && matrix[i][j] === 0 ? 1 : rectSize)))
+                .attr("height", rectSize)
                 .attr('line', i)
                 .attr("col", j)
                 .attr("fill", (matrix[i][j] === 0 ? '#e3e3e3' : (morph ? 'steelblue' : color(matrix[i][j]))));
@@ -69,19 +68,14 @@ function displayMatrix(matrix, svg, svgWidth, svgHeight, gap = false, morph = fa
                 } else if (gap && matrix[i][j] !== 0) {
                     temp = rectSize / 2
                 }
-
-                let skip = false;
-                if (i === 4 || i === 18 || i === 19)
-                    skip = true
-                lanes[i + 1].push([cumul + temp, 0, j, marginh + padding + (rectSize + padding) * (i < 4 ? i : (i < 18 ? i - 0.75 : (i > 18 ? i - 2: i - 1.5))), skip]);
-                lanes[i + 1].push([cumul + temp, 1, j, marginh + padding + (rectSize + padding) * (i < 4 ? i : (i < 18 ? i - 0.75 : (i > 18 ? i - 2 : i - 1.5))), skip]);
+                lanes[i + 1].push([cumul + temp, 0, j, marginh + padding + (rectSize + padding) * i]);
+                lanes[i + 1].push([cumul + temp, 1, j, marginh + padding + (rectSize + padding) * i]);
             }
 
             if (morph && !gap) {
                 cumul += hscale(matrix[i][j])
             } else if (gap) {
                 cumul += (matrix[i][j] === 0 ? 1 : (morph ? hscale(matrix[i][j]) : rectSize))
-                cumul2 += (matrix[i][j] === 0 ? 1 : (morph ? hscale(matrix[i][j]) : rectSize))
             } else {
                 cumul += rectSize;
             }
@@ -210,16 +204,11 @@ function drawLines(lanes, svg, height) {
                 return d[0];
             })
             .y(function (d) {
-                if (!d[4]) {
-                    if (d[1] !== 1) {
-                        return d[3]
+                if (d[1] !== 1) {
+                    return d[3]
 
-                    } else {
-                        return d[3] + height * 0.8
-                    }
-                }
-                else{
-                    return d[3] + height*0.8
+                } else {
+                    return d[3] + height * 0.8
                 }
             })
             .curve(d3.curveLinear);

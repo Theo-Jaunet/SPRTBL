@@ -1,0 +1,13 @@
+name,School,Blue Hair,Duff Fan,Evil,Male,Power Plant,val
+Degree0,0,0,0,0,0,0,3
+Degree1.0,1,0,0,0,0,0,1
+Degree1.1,0,1,0,0,0,0,2
+Degree1.2,0,0,0,0,1,0,3
+Degree2.0,1,0,0,0,1,0,3
+Degree2.1,0,0,1,0,1,0,2
+Degree2.2,0,0,0,1,1,0,2
+Degree3.0,1,1,0,0,1,0,1
+Degree3.1,1,0,0,1,1,0,1
+Degree3.2,0,0,1,1,1,0,1
+Degree3.3,0,0,1,0,1,1,3
+Degree3.4,0,0,0,1,1,1,2

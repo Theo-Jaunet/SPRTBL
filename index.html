@@ -19,405 +19,343 @@
 
     <!-- CSS
     –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <link rel="stylesheet" href="/assets/css/normalize.css">
-    <link rel="stylesheet" href="/assets/css/skeleton.css">
+    <link rel="stylesheet" href="assets/css/normalize.css">
+    <link rel="stylesheet" href="assets/css/skeleton.css">
 
     <!-- Favicon
     –––––––––––––––––––––––––––––––––––––––––––––––––– -->
     <link rel="icon" type="image/png" href="/assets/images/favicon/favicon.ico">
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"
             integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/kmeans-js@0.1.2/kMeans.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-sankey/0.12.2/d3-sankey.min.js"></script>
     <script type="text/javascript" src="jDBSCAN.js"></script>
     <script type="text/javascript" src="matrixGenerator.js"></script>
+    <script type="text/javascript" src="gambleForce.js"></script>
+    <script type="text/javascript" src="stats.js"></script>
+    <script type="text/javascript" src="dataHandler.js"></script>
+    <script type="text/javascript" src="utils.js"></script>
 
     <style>
 
-
-        #disp svg {
-
-            border: #555555 solid 1px;
-            margin: 5px;
-            width: 250px;
-            height: 250px;
-
+        text {
+            transform-origin: center;
+            font-family: monospace;
         }
+
+
+        label {
+            display: inline-block;
+        }
+
     </style>
+
 </head>
 <body>
 
 <!-- Primary Page Layout
 –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-<div class="container" style="margin-bottom: 5%">
-    <div class="row">
-        <div class="twelve column" style="margin-top: 10%">
-            <!--            <h4 style="text-align: center"> Hey, this a custom template with Skeleton</h4>-->
+<div class="container" style="margin-bottom: 5%; max-width: unset;width: 98%">
 
+    <div class="row">
+        <div class="twelve column" style="margin-top: 5%;text-align: center">
+            <h4>SPRTBL </h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="twelve column" style="margin-top: 1%;text-align: center">
+            <div>
+                <select id="preset">
+                    <option value="0">Les Miserables</option>
+                    <option value="1">Simpson</option>
+                    <option value="2">Grades</option>
+                    <option value="3">Block Diagonal</option>
+                    <option value="4">Random Noise</option>
+                    <option value="5">SimpsonUps</option>
+                    <option value="6">Custom</option>
+                </select>
+                <input id="fileUrl" style="display: none" type="text" placeholder="CustomFileURL">
+                <button class="button-primary" onclick="doTheThing()"> Go</button>
+            </div>
+
+            <div>
+                <label class="example-send-yourself-copy" style="display: inline-block">
+                    <input type="range" id="line" min="0" max="1" step="0.1"/>
+                    <span class="label-body">Line</span>
+                </label>
+                <label class="example-send-yourself-copy" style="display: inline-block">
+                    <input id="morph" type="checkbox">
+                    <span class="label-body">Morph</span>
+                </label>
+                <label>
+                    <span class="label-body">Direction</span>
+                    <select id="orr" style="display: inline-block">
+                        <option value="left">Left</option>
+                        <option value="top">Top</option>
+                    </select>
+                </label>
+                <label>
+                    <span class="label-body">Sort</span>
+                    <select id="sort" style="display: inline-block">
+                        <option value="none">None</option>
+                        <option value="rows">Rows</option>
+                        <option value="cols">Columns</option>
+                        <option value="both">Both</option>
+                    </select>
+                </label>
+                <label>
+                    <span class="label-body">Compression Factor</span>
+                    <input type="range" id="compression" min="0.2" max="6" step="0.2"/>
+                </label>
+            </div>
+
+            <div>
+                <p id="comp" style="display: inline-block">Compression XX%</p>
+                <p id="sparse" style="display: inline-block">Sparse XX%</p>
+                <p id="dev" style="display: inline-block">Deviation XX</p>
+                <p id="mess"></p>
+            </div>
         </div>
 
     </div>
 
     <div class="row">
-        <div class="twelve column" style="margin-top: 10%">
-            <div><input type="range" min="3" max="12" id="nbk" value="3">
-                <p id="nbtxt" style="display:inline-block;">3</p></div>
+        <div class="twelve column" style="margin-top: 2%;position: relative;text-align: center">
+            <div style="display: inline-block">
+                <svg id="main" width="900" height="900" style="border: #555555 solid 1px;">
 
-            <svg id="main" width="775" height="500" style="border: #555555 solid 1px;">
+                </svg>
 
+            </div>
+            <!--      <div style="display: inline-block;position: absolute">
+                      <svg id="main2" width="900" height="900" style="border: #555555 solid 1px;">
 
-            </svg>
-
-        </div>
-
-    </div>
-
-    <div class="row">
-        <div class="twelve column" id="disp">
-
+                      </svg>
+                  </div>-->
 
         </div>
-
     </div>
-
-
 </div>
-
-
 <script>
+
+
+    $("#line").on("input", function () {
+        let lines = parseFloat($("#line").val());
+        d3.selectAll("path").transition().duration(100).attr('opacity', lines)
+    })
+
+    function doTheThing() {
+
+        let val = parseInt($("#preset").val());
+
+        console.log(val);
+        $("#fileUrl").css("display", 'none');
+
+        switch (val) {
+
+            case 0:
+                console.log('lala');
+                const url = "https://bost.ocks.org/mike/miserables/miserables.json";
+                getData(url).then(doit);
+                break;
+
+            case 1:
+                getDataCsv('simpsons.csv').then(doit2);
+                break;
+
+            case 2:
+
+                getDataCsv('notes.csv').then(doit4);
+                break;
+
+            case 3:
+                var ops = getOptions();
+                // let mat = randomDots(50, 50, 0.8, 10);
+                var mat = rotateClockwise(blockDiag(50, 50, 10), 0);
+                switch (ops[4]) {
+                    case "rows":
+                        mat = reOrderMat(mat);
+                        break;
+                    case "cols":
+                        mat = reOrderMatCol(mat);
+                        break;
+                    case "both":
+                        mat = reOrderMatBoth(mat);
+                        break;
+                    default:
+                        break;
+                }
+                draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3]);
+                break;
+            case 4:
+                var ops = getOptions();
+                var mat = randomDots(50, 50, 0.8, 10);
+                switch (ops[4]) {
+                    case "rows":
+                        mat = reOrderMat(mat);
+                        break;
+                    case "cols":
+                        mat = reOrderMatCol(mat);
+                        break;
+                    case "both":
+                        mat = reOrderMatBoth(mat);
+                        break;
+                    default:
+                        break;
+                }
+                draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3]);
+                break;
+            case 5:
+                getDataCsv('simpsonsUps.csv').then(doit2);
+                break;
+
+            case 6:
+                $("#fileUrl").css("display", 'inline-block');
+                break;
+        }
+
+
+    }
+
+
+    $("#preset").on("input", doTheThing);
 
     let data;
 
-    let dato = [];
+    // const url = "https://raw.githubusercontent.com/jdfekete/reorder.js/master/examples/saclay/aviz2.json";
 
-    const align = "justify";
-    let nbk = 3;
+    const url = "https://bost.ocks.org/mike/miserables/miserables.json";
+    getData(url).then(doit);
 
+    $("body").on('mouseover', "rect", function (e) {
 
-    let clusts = [];
+        let tline = $(this).attr("line");
+        let tcol = $(this).attr("col");
+        const dur = 50;
+        d3.selectAll("rect").transition().duration(dur).style("opacity", 0.3);
+        d3.selectAll("text").transition().duration(dur).style("opacity", 0.3);
+        d3.selectAll('path').transition().duration(dur).style("opacity", 0.3);
+        d3.selectAll('rect[col="' + tcol + '"]').transition().duration(dur).style("opacity", 1);
+        d3.selectAll('text[col="' + tcol + '"]').transition().duration(dur).style("opacity", 1);
+        d3.selectAll('rect[line="' + tline + '"]').transition().duration(dur).style("opacity", 1);
+        d3.selectAll('text[line="' + tline + '"]').transition().duration(dur).style("opacity", 1);
+        d3.selectAll('path[col="' + tcol + '"]').transition().duration(dur).style("opacity", 1).attr('stroke-width', 2)
 
-    async function getData() {
-        data = await d3.csv('iris.csv').then(d => d);
-        return data
-    }
+    });
 
+    $("body").on('mouseout', "rect", function (e) {
+        const dur = 50;
+        d3.selectAll("rect").transition().duration(dur).style("opacity", 1);
+        d3.selectAll('path').transition().duration(dur).style("opacity", 1).attr('stroke-width', 1);
+        d3.selectAll("text").transition().duration(dur).style("opacity", 1);
 
-    $("#nbk").on("input", function (e) {
-        nbk = $(this).val();
-
-        let svg = d3.select("#main")
-
-        svg.selectAll("*").remove()
-
-        $("#nbtxt").html(nbk)
-
-        dato = [];
-        clusts = [];
-        $("#disp").html("")
-        draw()
-    })
-
-    getData().then(draw);
+    });
 
 
-    function draw() {
-        let color = d3.scaleOrdinal(d3.schemeCategory10);
+    // getData().then(doit);
 
-        let cont = d3.select("#disp");
-        let done = []
-        for (let i = 0; i < data.columns.length - 1; i++) {
-            let name1 = data.columns[i]
+    // getDataCsv('notes.csv').then(doit2);
+    // getDataCsv('simpsons.csv').then(doit2);
 
-            for (let u = 0; u < data.columns.length - 1; u++) {
-                let name2 = data.columns[u]
+    function doit2() {
+
+        const ops = getOptions();
 
 
-                if (done.includes(name1 + name2)) continue
-                done.push(name1 + name2)
-                done.push(name2 + name1)
-                if (u === i) continue
-                let svg = cont.append("svg")
-                let temp = data.map(d => [+d[name1], +d[name2]])
-                let scalex = d3.scaleLinear(d3.extent(temp.map(d => d[0])), [25, 225])
-                let scaley = d3.scaleLinear(d3.extent(temp.map(d => d[1])), [25, 225])
+        let linem = data.map(d => d.name);
+        let mat = csv2matrix(data, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1));
 
-
-                // var km = new kMeans({
-                //     K: nbk
-                // });
-
-                let lim = d3.extent(temp.map(d => d[0]))
-                var dbscanner = jDBSCAN()
-                    .eps(10)
-                    .minPts(4)
-                    .distance('EUCLIDEAN')
-                    .data(temp.map(d => {
-                        return {
-                            x: scalex(d[0]),
-                            y: scaley(d[1])
-                        }
-                    }));
-
-
-                // km.cluster(temp.map(d => [scalex(d[0]), scaley(d[1])]));
-                // while (km.step()) {
-                //     km.findClosestCentroids();
-                //     km.moveCentroids();
-                //
-                //
-                //     if (km.hasConverged()) break;
-                // }
-
-                let bob = toClust(dbscanner());
-                console.log('Hello');
-                console.log(bob);
-                console.log('There');
-                if (dato.length > 0) {
-                    // bob = reorder(bob, clusts[0]);
-                    clusts.push(bob);
-                    temp = getCluster(temp, bob);
-                } else {
-                    clusts.push(bob);
-                    temp = getCluster(temp, bob);
-                }
-                dato.push(temp);
-                // clusts.push(km.clusters);
-
-                svg.selectAll(".dat")
-                    .data(temp)
-                    .enter()
-                    .append("circle")
-                    .attr("r", '2')
-                    .attr("num", (d, i) => i)
-                    .attr("clust", d => d[2])
-                    .attr("cx", d => scalex(d[0]))
-                    .attr("cy", d => scaley(d[1]))
-                    .attr('fill', d => color(d[2]))
-                    .on("mouseover", big)
-                    .on("mouseout", smal)
-            }
+        switch (ops[4]) {
+            case "rows":
+                mat = reOrderMat(mat);
+                break;
+            case "cols":
+                mat = reOrderMatCol(mat);
+                break;
+            case "both":
+                mat = reOrderMatBoth(mat);
+                break;
+            default:
+                break;
         }
 
-        drawSankey()
+        // reOrderMatCol(mat);
+        draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3])
     }
 
-    function big(e) {
-        let temp = d3.select(this);
+    function doit() {
+        // displayMatrix(network2matrix(data), d3.select("#main2"), 900, 900, true, false, true)
 
-        for (let i = 0; i < clusts[0][temp.attr('clust')].length; i++) {
+        const ops = getOptions();
 
-            d3.selectAll('circle[num="' + clusts[0][temp.attr('clust')][i] + '"]').transition().duration(200).attr("r", 5)
+        let mat = network2matrix(data)
+
+        switch (ops[4]) {
+            case "rows":
+                mat = reOrderMat(mat);
+                break;
+            case "cols":
+                mat = reOrderMatCol(mat);
+                break;
+            case "both":
+                mat = reOrderMatBoth(mat);
+                break;
+            default:
+                break;
         }
 
-        console.log('done');
-
+        draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3])
     }
 
 
-    function toClust(data) {
-        console.log(data);
-        console.log(unique(data).length);
-        let res = d3.range(unique(data).length).map(d => []);
-        for (let i = 0; i < data.length; i++) {
-            res[data[i]].push(i)
+    function doit3() {
+        // displayMatrix(blockDiag(5, 5, 10), d3.select("#main"), 1200, 1200, false,false, true)
+
+        const ops = getOptions();
+        // let mat = randomDots(50, 50, 0.8, 10);
+        let mat = rotateClockwise(blockDiag(50, 50, 10), 0);
+        switch (ops[4]) {
+            case "rows":
+                mat = reOrderMat(mat);
+                break;
+            case "cols":
+                mat = reOrderMatCol(mat);
+                break;
+            case "both":
+                mat = reOrderMatBoth(mat);
+                break;
+            default:
+                break;
         }
-        return res
-    }
-
-    function unique(array) {
-        return array.filter(function (el, index, arr) {
-            return index == arr.indexOf(el);
-        });
+        draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3]);
+        // draw(reOrderMat(mat), d3.select("#main2"))
+        // displayMatrix(mat, d3.select("#main"), 900, 900, true, false, true, d3.range(mat[0].length));
+        // displayMatrix(mat, d3.select("#main2"), 900, 900, false, false, false, d3.range(mat[0].length))
     }
 
 
-    function smal(e) {
-        let temp = d3.select(this)
-        d3.selectAll('circle').transition().duration(200).attr("r", 2)
+    function doit4() {
+        let mat = csv2table(data, Object.keys(data[0]).slice(1));
+
+        const ops = getOptions();
+
+        drawTable(mat, d3.select("#main"), ops[0], ops[2], ops[3])
     }
 
-    function getCluster(data, clusters) {
-        console.log(clusters);
-        console.log('lalala');
-        return data.map((d, i) => {
-            for (let j = 0; j < clusters.length; j++) {
-                if (clusters[j].includes(i)) {
-                    d.push(j);
-                    return d
-                }
-            }
-            return clusters.length
-        })
+    function getOptions() {
+        let lines = parseFloat($("#line").val());
+        let morph = ($("#morph").is(":checked"));
+
+        let direction = $("#orr").val();
+
+        let sort = $("#sort").val();
+        console.log(lines);
+        console.log(sort);
+        let compress = parseFloat($("#compression").val());
+
+        return [lines, morph, direction, compress, sort]
+
     }
 
-    function reorder(clusters, ref) {
-        // This is done to re-order cluster based on how similar they are to the ref.
-        let temp = d3.range(ref.length).map(d => []);
-        let mid = [];
-
-        let res = [];
-        for (let u = 0; u < clusters.length; u++) {
-            for (let i = 0; i < ref.length; i++) {
-
-                temp[u].push(arr_diff(clusters[u], ref[i]).length)
-            }
-
-            let argm = argMin(temp[u]);
-            if (!mid.includes(argm)) {
-                res.push(clusters[argm])
-                mid.push(argm)
-            } else {
-                let prov = temp[u].slice()
-                prov.splice(argm, 1)
-                argm = argMin(prov);
-                argm = temp[u].indexOf(prov[argm])
-                res.push(clusters[argm])
-                mid.push(argm)
-            }
-
-        }
-        console.log(clusters);
-        console.log(res);
-        console.log('--------');
-        return res
-    }
-
-    function argMin(array) {
-        return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] < r[0] ? a : r))[1];
-    }
-
-    function arr_diff(a1, a2) {
-
-        var a = [], diff = [];
-
-        for (var i = 0; i < a1.length; i++) {
-            a[a1[i]] = true;
-        }
-
-        for (var i = 0; i < a2.length; i++) {
-            if (a[a2[i]]) {
-                delete a[a2[i]];
-            } else {
-                a[a2[i]] = true;
-            }
-        }
-
-        for (var k in a) {
-            diff.push(k);
-        }
-
-        return diff;
-    }
-
-    function sankey() {
-        const sankey = d3.sankey()
-            .nodeId(d => d.name)
-            .nodeAlign(d3[`sankey${align[0].toUpperCase()}${align.slice(1)}`])
-            .nodeWidth(15)
-            .nodePadding(10)
-            .extent([[1, 5], [780 - 1, 500 - 5]])
-        // .nodeAlign(nodeAlignment)
-
-        return ({nodes, links}) => sankey({
-            nodes: nodes.map(d => Object.assign({}, d)),
-            links: links.map(d => Object.assign({}, d))
-        });
-    }
-
-    function drawSankey() {
-        let color = d3.scaleOrdinal(d3.schemeCategory10);
-
-        const {nodes, links} = sankey()(makeData(clusts));
-        // console.log('CALLLLLEEDDD');
-        // console.log(sankey()(makeData(clusts)));
-
-
-        const svg = d3.select('#main')
-        svg.append("g")
-            .attr("stroke", "#000")
-            .selectAll("rect")
-            .data(nodes)
-            .join("rect")
-            .attr("x", d => d.x0)
-            .attr("y", d => d.y0)
-            .attr("height", d => d.y1 - d.y0)
-            .attr("width", d => d.x1 - d.x0)
-            .attr("fill", d => color(d.category))
-            .append("title")
-            .text(d => d.name + '\n' + d.value);
-
-        const link = svg.append("g")
-            .attr("fill", "none")
-            .attr("stroke-opacity", 0.5)
-            .selectAll("g")
-            .data(links)
-            .join("g")
-            .style("mix-blend-mode", "multiply");
-
-
-        link.append("path")
-            .attr("d", d3.sankeyLinkHorizontal())
-            .attr("stroke", d =>
-                color(d.target.category))
-            .attr("stroke-width", d => Math.max(1, d.width));
-
-        link.append("title")
-            .text(d => d.source.name + ' → ' + d.target.name + '\n' + d.value);
-
-        // svg.append("g")
-        //     .attr("font-family", "sans-serif")
-        //     .attr("font-size", 10)
-        //     .selectAll("text")
-        //     .data(nodes)
-        //     .join("text")
-        //     .attr("x", d => d.x0 < 780 / 2 ? d.x1 + 6 : d.x0 - 6)
-        //     .attr("y", d => (d.y1 + d.y0) / 2)
-        //     .attr("dy", "0.35em")
-        //     .attr("text-anchor", d => d.x0 < 780 / 2 ? "start" : "end")
-        //     .text(d => d.name);
-    }
-
-
-    function makeData(data) {
-
-
-        console.log('LAAAAAAAAAAAAA');
-        let nodes = [];
-        let links = [];
-
-        for (let i = 0; i < data.length; i++) {
-            for (let j = 0; j < data[i].length; j++) {
-                nodes.push({name: 'layer_' + i + '_clust' + j, category: j})
-            }
-        }
-
-        for (let i = 0; i < data.length - 1; i++) {
-            for (let u = 0; u < data[i].length; u++) {
-                for (let j = 0; j < data[i + 1].length; j++) {
-                    const intersection = data[i][u].slice().filter(element => data[i + 1][j].includes(element));
-                    if (i == 1 && u == 0) {
-                        console.log('----');
-                        // console.log(data[i][u]);
-                        // console.log('----');
-                        // console.log(data[i + 1][j]);
-                        // console.log('----');
-                        console.log(intersection);
-                        console.log('----');
-                    }
-                    if (intersection.length > 0) {
-                        links.push({
-                            source: 'layer_' + i + '_clust' + u,
-                            target: 'layer_' + (i + 1) + '_clust' + j,
-                            value: intersection.length
-                        })
-                    }
-                }
-
-            }
-        }
-        return {nodes, links, units: "TWh"}
-    }
 </script>
-
 </body>
+
 </html>
