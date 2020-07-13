@@ -37,10 +37,14 @@
     <style>
 
         text {
-            transform-origin: center;
+
             font-family: monospace;
         }
 
+
+        .valu {
+            transform-origin: center;
+        }
 
         label {
             display: inline-block;
@@ -70,21 +74,21 @@
                     <option value="3">Block Diagonal</option>
                     <option value="4">Random Noise</option>
                     <option value="5">SimpsonUps</option>
-                    <option value="6">Custom</option>
+                    <option value="6">crossStAndre</option>
+                    <option value="7">Cross</option>
+                    <option value="8">DiagBand</option>
+                    <option value="9">BowTie</option>
                 </select>
                 <input id="fileUrl" style="display: none" type="text" placeholder="CustomFileURL">
                 <button class="button-primary" onclick="doTheThing()"> Go</button>
             </div>
-
             <div>
                 <label class="example-send-yourself-copy" style="display: inline-block">
-                    <input type="range" id="line" min="0" max="1" step="0.1"/>
-                    <span class="label-body">Line</span>
-                </label>
-                <label class="example-send-yourself-copy" style="display: inline-block">
-                    <input id="morph" type="checkbox">
                     <span class="label-body">Morph</span>
+                    <input type="range" id="morph" min="0" max="5" step="0.5" value="0"/>
+
                 </label>
+
                 <label>
                     <span class="label-body">Direction</span>
                     <select id="orr" style="display: inline-block">
@@ -106,6 +110,24 @@
                     <input type="range" id="compression" min="0.2" max="6" step="0.2"/>
                 </label>
             </div>
+            <div>
+                <label class="example-send-yourself-copy" style="display: inline-block">
+                    <span class="label-body">Lines In Bg?</span>
+                    <input id="inFront" type="checkbox" checked>
+
+                </label>
+                <label class="example-send-yourself-copy" style="display: inline-block">
+                    <span class="label-body">Horizontal Lines</span>
+                    <input type="range" id="lineh" min="0" max="1" step="0.1"/>
+
+                </label>
+                <label class="example-send-yourself-copy" style="display: inline-block">
+                    <span class="label-body">Vertical Lines</span>
+                    <input type="range" id="linev" min="0" max="1" step="0.1"/>
+
+                </label>
+            </div>
+
 
             <div>
                 <p id="comp" style="display: inline-block">Compression XX%</p>
@@ -136,11 +158,29 @@
 </div>
 <script>
 
+    let inFront = false;
 
-    $("#line").on("input", function () {
-        let lines = parseFloat($("#line").val());
-        d3.selectAll("path").transition().duration(100).attr('opacity', lines)
+
+    $("#inFront").on("input", function () {
+        inFront = !inFront;
+        if (inFront) {
+            d3.selectAll("path").moveToFront();
+        } else {
+            d3.selectAll("path").moveToBack();
+        }
+
     })
+
+    $("#lineh").on("input", function () {
+        let lines = parseFloat($("#lineh").val());
+        d3.selectAll(".hlines").transition().duration(100).attr('opacity', lines)
+    })
+
+    $("#linev").on("input", function () {
+        let lines = parseFloat($("#linev").val());
+        d3.selectAll(".vlines").transition().duration(100).attr('opacity', lines)
+    })
+
 
     function doTheThing() {
 
@@ -204,11 +244,79 @@
                 draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3]);
                 break;
             case 5:
-                getDataCsv('simpsonsUps.csv').then(doit2);
+                getDataCsv('simpsonsUps.csv').then(doit5);
                 break;
-
             case 6:
-                $("#fileUrl").css("display", 'inline-block');
+                var ops = getOptions();
+                var mat = crossStAndreMat(50, 50, 10);
+                switch (ops[4]) {
+                    case "rows":
+                        mat = reOrderMat(mat);
+                        break;
+                    case "cols":
+                        mat = reOrderMatCol(mat);
+                        break;
+                    case "both":
+                        mat = reOrderMatBoth(mat);
+                        break;
+                    default:
+                        break;
+                }
+                draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3]);
+                break;
+            case 7:
+                var ops = getOptions();
+                var mat = crosseMat(50, 50, 10);
+                switch (ops[4]) {
+                    case "rows":
+                        mat = reOrderMat(mat);
+                        break;
+                    case "cols":
+                        mat = reOrderMatCol(mat);
+                        break;
+                    case "both":
+                        mat = reOrderMatBoth(mat);
+                        break;
+                    default:
+                        break;
+                }
+                draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3]);
+                break;
+            case 8:
+                var ops = getOptions();
+                var mat = diagBand(50, 50, 10);
+                switch (ops[4]) {
+                    case "rows":
+                        mat = reOrderMat(mat);
+                        break;
+                    case "cols":
+                        mat = reOrderMatCol(mat);
+                        break;
+                    case "both":
+                        mat = reOrderMatBoth(mat);
+                        break;
+                    default:
+                        break;
+                }
+                draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3]);
+                break;
+            case 9:
+                var ops = getOptions();
+                var mat = star(50, 50, 10);
+                switch (ops[4]) {
+                    case "rows":
+                        mat = reOrderMat(mat);
+                        break;
+                    case "cols":
+                        mat = reOrderMatCol(mat);
+                        break;
+                    case "both":
+                        mat = reOrderMatBoth(mat);
+                        break;
+                    default:
+                        break;
+                }
+                draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3]);
                 break;
         }
 
@@ -223,7 +331,7 @@
     // const url = "https://raw.githubusercontent.com/jdfekete/reorder.js/master/examples/saclay/aviz2.json";
 
     const url = "https://bost.ocks.org/mike/miserables/miserables.json";
-    getData(url).then(doit);
+    // getData(url).then(doit);
 
     $("body").on('mouseover', "rect", function (e) {
 
@@ -238,6 +346,7 @@
         d3.selectAll('rect[line="' + tline + '"]').transition().duration(dur).style("opacity", 1);
         d3.selectAll('text[line="' + tline + '"]').transition().duration(dur).style("opacity", 1);
         d3.selectAll('path[col="' + tcol + '"]').transition().duration(dur).style("opacity", 1).attr('stroke-width', 2)
+        d3.selectAll('path[line="' + tline + '"]').transition().duration(dur).style("opacity", 1).attr('stroke-width', 2)
 
     });
 
@@ -278,7 +387,7 @@
         }
 
         // reOrderMatCol(mat);
-        draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3])
+        draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3], linem, Object.keys(data[0]).slice(1, Object.keys(data[0]).length - 1))
     }
 
     function doit() {
@@ -302,7 +411,7 @@
                 break;
         }
 
-        draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3])
+        draw(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3], data.nodes.map(d => d.name))
     }
 
 
@@ -337,12 +446,12 @@
 
         const ops = getOptions();
 
-        drawTable(mat, d3.select("#main"), ops[0], ops[2], ops[3])
+        drawTable(mat, d3.select("#main"), ops[0], ops[2], ops[3], d3.range(data.length), Object.keys(data[0]).slice(1))
     }
 
     function getOptions() {
-        let lines = parseFloat($("#line").val());
-        let morph = ($("#morph").is(":checked"));
+        let lines = [parseFloat($("#lineh").val()), parseFloat($("#linev").val())];
+        let morph = parseFloat($("#morph").val());
 
         let direction = $("#orr").val();
 
@@ -354,6 +463,36 @@
         return [lines, morph, direction, compress, sort]
 
     }
+
+
+    function doit5() {
+
+        const ops = getOptions();
+
+
+        let linem = data.map(d => d.name);
+        let mat = csv2matrix(data, Object.keys(data[0]).slice(1));
+
+        console.log(mat);
+
+        switch (ops[4]) {
+            case "rows":
+                mat = reOrderMat(mat);
+                break;
+            case "cols":
+                mat = reOrderMatCol(mat);
+                break;
+            case "both":
+                mat = reOrderMatBoth(mat);
+                break;
+            default:
+                break;
+        }
+
+        // reOrderMatCol(mat);
+        drawQuant(mat, d3.select("#main"), ops[0], ops[1], ops[2], ops[3], linem, Object.keys(data[0]).slice(1))
+    }
+
 
 </script>
 </body>
