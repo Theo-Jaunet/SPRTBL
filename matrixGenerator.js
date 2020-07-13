@@ -25,6 +25,102 @@ function randomDots(n, k, thresh, max) {
     return matrix
 }
 
+
+function crossStAndreMat(n, k, max) {
+    let matrix = initM(n, k);
+    const t = getRandomInt(1, 6);
+
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < k; j++) {
+
+
+            if (j < i + t && j > i - t) {
+                matrix[i][j] = getRandomInt(1, max)
+            }
+
+
+            if (j < (k - (i + 1)) + t && j > (k - (i + 1)) - t) {
+
+                // if (k - (i + 1)) === j) {
+                matrix[i][j] = getRandomInt(1, max)
+            }
+        }
+    }
+    return matrix
+}
+
+
+function star(n, k, max) {
+    let matrix = initM(n, k);
+    let t = 0;
+
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < k; j++) {
+
+
+            if (j < i + t && j > i - t) {
+                matrix[i][j] = getRandomInt(1, max)
+            }
+
+            if (j < (k - (i + 1)) + t && j > (k - (i + 1)) - t) {
+                // if (k - (i + 1)) === j) {
+                matrix[i][j] = getRandomInt(1, max)
+            }
+
+
+        }
+        if (i < n / 2 && i > n / 4) {
+            t++
+        } else if (i === n / 2) {
+            t-=2
+        } else if (i  > n / 2) {
+            if (t > 0)
+                t--
+        }
+    }
+    return matrix
+}
+
+function diagBand(n, k, max) {
+    let matrix = initM(n, k);
+    const t = getRandomInt(1, 6);
+
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < k; j++) {
+
+
+            if (j < i + t && j > i - t) {
+                matrix[i][j] = getRandomInt(1, max)
+            }
+
+        }
+    }
+    return matrix
+}
+
+function crosseMat(n, k, max) {
+    let matrix = initM(n, k);
+    const t = getRandomInt(1, 6);
+
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < k; j++) {
+
+
+            if (j > Math.floor(k / 2) - t && j < Math.floor(k / 2) + t) {
+                matrix[i][j] = getRandomInt(1, max)
+            }
+
+
+            if (i > Math.floor(n / 2) - t && i < Math.floor(n / 2) + t) {
+
+                // if (k - (i + 1)) === j) {
+                matrix[i][j] = getRandomInt(1, max)
+            }
+        }
+    }
+    return matrix
+}
+
 function blockDiag(n, k, max) {
 
     let matrix = initM(n, k);
@@ -77,7 +173,7 @@ function transpose(array) {
 
 
 function rotateClockwise(arr, u) {
-    a = arr.slice().map(d=> d.slice());
+    a = arr.slice().map(d => d.slice());
     var n = a.length;
 
     for (let w = 0; w < u; w++) {

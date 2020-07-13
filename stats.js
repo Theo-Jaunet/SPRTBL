@@ -5,10 +5,8 @@ function getCurve(points) {
 
 
     for (let i = 0; i < points.length; i++) {
-
         acc += Math.abs(points[i].x - avgx)
     }
-
     return Math.sqrt(acc / points.length)
 
 }
@@ -16,7 +14,7 @@ function getCurve(points) {
 
 function getAreaH(pend, height, padding, ref) {
 
-    console.log(pend);
+    // console.log(pend);
     let acc = 0;
     for (let i = 0; i < pend.length; i++) {
         if (!isOdd(i)) {

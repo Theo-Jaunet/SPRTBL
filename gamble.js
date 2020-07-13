@@ -47,6 +47,7 @@ function displayMatrix(matrix, svg, svgWidth, svgHeight, gap = false, morph = fa
                         .style("font-size", "9pt")
                         .attr("transform", "rotate(-85," + ((rectSize / 2) + marginw + (rectSize + padding) * j + 1) + ",50)")
                         .attr("col", j)
+                        .style("transform-origin","")
                         .text((labels2.length > 0 ? labels2[j] : labels[j]));
 
                     lanes[i].push([(rectSize / 2) + marginw + (rectSize + padding) * j, 2, j, marginh - 25])
